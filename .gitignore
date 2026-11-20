@@ -1,0 +1,43 @@
+# OS / Editor
+.DS_Store
+Thumbs.db
+*:Zone.Identifier
+*.swp
+*.swo
+*~
+
+# Environment & Secrets
+.env
+.env.*
+!.env.example
+
+# Local SQLite / Turso dev files
+*.db
+*.db-shm
+*.db-wal
+local.db*
+
+# Rust (services/api)
+services/api/target/
+**/target/
+**/*.rs.bk
+
+# Xcode / iOS (apps/ios)
+DerivedData/
+.build/
+.swiftpm/
+*.xcuserdata/
+*.xcscmblueprint
+*.xccheckout
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Terraform / Infra state
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example

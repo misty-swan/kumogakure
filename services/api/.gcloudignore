@@ -1,0 +1,14 @@
+.gcloudignore
+.git
+.gitignore
+target/
+**/target/
+*.db
+*.db-shm
+*.db-wal
+local.db*
+.env
+.env.*
+!.env.example
+.DS_Store
+*:Zone.Identifier
