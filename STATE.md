@@ -9,15 +9,15 @@
 ## 1. サマリー
 
 - **最終更新日**: `2026-11-24`
-- **現在フェーズ**: `Week 3 完了 → Mac/Xcode ビルド・テスト確認＆Week 4（不在証明連携・ローカル課金）へ移行可能`
-- **全体進捗**: **19 / 32 タスク完了**（**Week 0・Week 1・Week 2・Week 3 完了** ※Week 3 は Linux 環境にて実装＆静的/プロジェクト整合検証済、`xcodebuild test` は Mac 環境で実行待ち）
+- **現在フェーズ**: `Week 3 完了（Xcode 16.4 実コンパイル＆XCTest 33 件 CI パス）→ Week 4（不在証明連携・ローカル課金）へ移行可能`
+- **全体進捗**: **19 / 32 タスク完了**（**Week 0・Week 1・Week 2・Week 3 完了**）
 
 | フェーズ | 完了 | 進行中 | 未着手 | 主な状況 |
 | :--- | :---: | :---: | :---: | :--- |
 | **Week 0**（無料事前セットアップ） | 1 | 0 | 0 | フォーム 2 種作成・公開 URL 反映済（※メール通知 ON＆テスト送信はブラウザ確認待ち） |
 | **Week 1**（初期化・素材・`dev` インフラ） | 6 | 0 | 0 | **全完了**（モノレポ・画像・音声・フォント・Turso `dev`・Cloud Run `dev` `/health?deep=1` 疎通済） |
 | **Week 2**（Rust API・OGP・DB 完成） | 6 | 0 | 0 | **全完了**（ドメイン・全 8 API/Web/OGP・RC 検証・`/internal/cleanup`・CI/CD・Cloud Scheduler・`dev` E2E 疎通済） |
-| **Week 3**（iOS コア体験） | 6 | 0 | 0 | **実装完了**（Xcode プロジェクト・全 25 App Swift・全 7 XCTest 作成＆整合/静的チェック済、Mac で `xcodebuild test` 待ち） |
+| **Week 3**（iOS コア体験） | 6 | 0 | 0 | **全完了**（GitHub Actions `macos-15` / Xcode 16.4・`iPhone 16 Pro` シミュレータでビルド＆XCTest 33 件全パス済） |
 | **Week 4**（不在証明連携・ローカル課金） | 0 | 0 | 6 | — |
 | **Week 5**（独自ドメイン・CF・RC 本番） | 0 | 0 | 5 | — |
 | **Week 6**（TestFlight QA・App Store 審査） | 0 | 0 | 4 | — |
@@ -35,7 +35,7 @@
 | **Cloud Run（`kumogakure-api-dev`）** | `dev` | `稼働中` | `https://kumogakure-api-dev-fpdy7efquq-an.a.run.app`（`asia-northeast1`, リビジョン `kumogakure-api-dev-00006-9lf`, `1 vCPU / 512Mi`, `min=0, max=3`, `concurrency=40`, `timeout=15s`, 全 8 エンドポイント疎通済） |
 | **Cloud Scheduler（`kumogakure-cleanup-dev`）** | `dev` | `稼働中` | `asia-northeast1`, `0 4 * * * Asia/Tokyo`, `POST /internal/cleanup` (`ENABLED`, 手動実行 `2026-11-24T02:24:33Z` 成功済) |
 | **GitHub Actions CI/CD（WIF）** | `dev` / 共通 | `構築済` | [api-ci-cd.yml](.github/workflows/api-ci-cd.yml) / WIF Pool `github-actions` / Provider `github-repo` / Deploy SA `kumogakure-github-deployer` / リポジトリ変数 7 件設定済 |
-| **GitHub Actions iOS CI** | `iOS` | `追加済` | [ios-ci.yml](.github/workflows/ios-ci.yml)（`macos-15` 上で `xcodebuild test` 実行・push 後初回 CI 確認待ち） |
+| **GitHub Actions iOS CI** | `iOS` | `稼働中` | [ios-ci.yml](.github/workflows/ios-ci.yml)（`macos-15` / Xcode 16.4・`iPhone 16 Pro` シミュレータで `xcodebuild test` 全 33 件パス済） |
 | **独自ドメイン / Cloudflare / 本番環境** | `prod` | `Week 5 予定` | 第一候補 `kumogakure.app` |
 | **Apple Developer / RevenueCat 本番** | `prod` | `Week 4〜5 予定` | 仮 Bundle ID: `app.kumogakure.ios` / Entitlement: `hermit_pro` |
 
@@ -106,7 +106,8 @@
 
 ## 4. 直近の検証ログ
 
-- **iOS アプリ Week 3 実装・プロジェクト整合検証 (`2026-11-24`, Linux WSL2 環境)**: Xcode / `swiftc` 非搭載の Linux 環境で `apps/ios`（App 25 Swift ファイル + XCTest 7 Swift ファイル〔計 33 テストメソッド〕 + `project.pbxproj` + `Kumogakure.xcscheme` + `Info.plist` + `Assets.xcassets`）を生成し、Python スクリプトによる静的・構造整合チェックを実施して全パスを確認済（`pbxproj` ID 一意性＆全参照整合、ビルドフェーズとディスク上 Swift/`.m4a`/`Assets.xcassets` の 1:1 一致、`Info.plist` 必須キー、`xcscheme` XML、`Assets.xcassets` JSON＆画像実在、全 Swift 括弧整合、SwiftData `#Predicate` / `@Observable` 制約・正本識別子・2.5.4 無音時 `AVAudioSession` 非起動ガード検証）。※実コンパイル・`xcodebuild test` は Mac/Xcode 環境にて未実行。
+- **iOS アプリ Week 3 Xcode ビルド＆XCTest 検証 (`2026-11-24`, GitHub Actions `macos-15`)**: コミット `bf946c1` に対する [iOS CI run 45326146181](https://github.com/misty-swan/kumogakure/actions/runs/45326146181)（Xcode `16.4` Build `16F6` / シミュレータ `iPhone 16 Pro` `iOS-26-2`）にて、`Kumogakure` アプリと `KumogakureTests` の実コンパイル（`SWIFT_STRICT_CONCURRENCY = complete`）および全 **33 件** のユニットテストパス（`** TEST SUCCEEDED **`）を確認済（`DetoxTimerEngineTests` 4 件、`AppLifecycleMonitorTests` 7 件、`MorningTargetCalculatorTests` 6 件、`AmbientAudioManagerTests` 5 件、`KeychainAndStorageTests` 4 件、`DetoxSessionStoreTests` 7 件）。
+- **iOS アプリ Week 3 実装・プロジェクト整合検証 (`2026-11-24`, Linux WSL2 環境)**: Xcode / `swiftc` 非搭載の Linux 環境で `apps/ios`（App 25 Swift ファイル + XCTest 7 Swift ファイル〔計 33 テストメソッド〕 + `project.pbxproj` + `Kumogakure.xcscheme` + `Info.plist` + `Assets.xcassets`）を生成し、Python スクリプトによる静的・構造整合チェックを実施して全パスを確認済（`pbxproj` ID 一意性＆全参照整合、ビルドフェーズとディスク上 Swift/`.m4a`/`Assets.xcassets` の 1:1 一致、`Info.plist` 必須キー、`xcscheme` XML、`Assets.xcassets` JSON＆画像実在、全 Swift 括弧整合、SwiftData `#Predicate` / `@Observable` 制約・正本識別子・2.5.4 無音時 `AVAudioSession` 非起動ガード検証）。
 - **Rust API ビルド・テスト検証 (`2026-11-24`)**: `services/api` で `cargo fmt --check`、`cargo clippy --all-targets -- -D warnings`、`cargo test` を実行し、ユニットテスト 15 件・[api_integration.rs](services/api/tests/api_integration.rs) インメモリ DB 統合テスト 8 件・[week1_foundation.rs](services/api/tests/week1_foundation.rs) 基盤テスト 4 件の**計 27 件全パス**（OGP `1200x630` PNG 生成・XML/HTML エスケープ・RevenueCat モック 60 秒キャッシュ＆Fail-Open・410/404・`/internal/cleanup` 検証含む）。
 - **Cloud Run `dev` ライブ E2E 疎通検証 (`2026-11-24`)**: リビジョン `kumogakure-api-dev-00006-9lf`（`https://kumogakure-api-dev-fpdy7efquq-an.a.run.app`）に対し全エンドポイントを検証:
   - `GET /health` & `GET /health?deep=1` → `200 OK`（`db: "ok"`）
@@ -132,6 +133,6 @@
 ## 5. 次のアクション
 
 1. **W0-1 最終確認（オーナー操作）**: フォーム ①・② 両方のメール通知 ON と 1 回ずつのテスト送信受信確認（手順: [infra/forms/google-forms-setup.md](infra/forms/google-forms-setup.md)）。
-2. **Mac / GitHub Actions での Week 3 ビルド＆テスト確認**: コミット・push 後に GitHub Actions [ios-ci.yml](.github/workflows/ios-ci.yml)（`macos-15`）で実コンパイル＆33 件 XCTest 全パスを確認する（手元 Mac がある場合は [apps/ios/Kumogakure.xcodeproj](apps/ios/Kumogakure.xcodeproj/project.pbxproj) から直接実行も可）。
-3. **Week 4 着手（`W4-1`〜`W4-6`）**: `KumogakureAPIClient` + `OfflineFinishQueue`、S-02 不在証明作成 + `ShareCardRenderer`、S-06 雲隠れ帳、S-07 Paywall + `.storekit` ローカル課金、S-08 設定、同時雲隠れ人数連携を実装する。
+2. **Week 4 着手（`W4-1`〜`W4-6`）**: `KumogakureAPIClient` + `OfflineFinishQueue`、S-02 不在証明作成 + `ShareCardRenderer`、S-06 雲隠れ帳、S-07 Paywall + `.storekit` ローカル課金、S-08 設定、同時雲隠れ人数連携を実装する。
+3. **（任意）手元 Mac / 実機での UI 目視確認**: [apps/ios/Kumogakure.xcodeproj](apps/ios/Kumogakure.xcodeproj/project.pbxproj) を開き、S-01 / S-03 / S-04 / S-05 の実機画面・マナーモード環境音再生を確認する。
 4. **（任意）RevenueCat `dev` キー登録**: Week 4 の課金実機/API 連携テスト時に、RevenueCat Sandbox Secret API Key を GCP Secret Manager `REVENUECAT_SECRET_API_KEY` へ登録する（現在はプレースホルダーのため `REVENUECAT_FAIL_OPEN=true` により許容動作中）。
