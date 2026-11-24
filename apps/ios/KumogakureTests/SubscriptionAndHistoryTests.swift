@@ -256,10 +256,10 @@ final class SubscriptionAndHistoryTests: XCTestCase {
         )
 
         let session = try SKTestSession(contentsOf: configURL)
+        session.resetToDefaultState()
         session.disableDialogs = true
         session.storefront = "JPN"
         session.locale = Locale(identifier: "ja_JP")
-        session.resetToDefaultState()
         session.clearTransactions()
         defer {
             session.clearTransactions()
