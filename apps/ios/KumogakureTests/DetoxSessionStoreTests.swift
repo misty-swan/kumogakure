@@ -12,6 +12,7 @@ final class DetoxSessionStoreTests: XCTestCase {
         let audioSession: MockAudioSession
         let notifications: MockNotificationScheduler
         let idleController: MockIdleTimerController
+        let container: ModelContainer
         let repository: SwiftDataSessionRepository
         let preferences: UserPreferencesStore
         let defaults: UserDefaults
@@ -71,6 +72,7 @@ final class DetoxSessionStoreTests: XCTestCase {
             audioSession: audioSession,
             notifications: notifications,
             idleController: idleController,
+            container: container,
             repository: repository,
             preferences: preferences,
             defaults: defaults,

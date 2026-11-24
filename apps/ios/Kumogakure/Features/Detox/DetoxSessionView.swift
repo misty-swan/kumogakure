@@ -49,7 +49,7 @@ struct DetoxSessionView: View {
         .onTapGesture {
             registerControlInteraction()
         }
-        .sensoryFeedback(.impact(weight: .soft, intensity: 0.7), trigger: startFeedbackTrigger)
+        .sensoryFeedback(.impact(flexibility: .soft, intensity: 0.7), trigger: startFeedbackTrigger)
         .onAppear {
             startFeedbackTrigger.toggle()
             registerControlInteraction()
