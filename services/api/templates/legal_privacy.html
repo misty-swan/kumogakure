@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>プライバシーポリシー | 雲隠れ（Kumogakure）</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #0F1216;
+      color: #EAE6DF;
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+      line-height: 1.85;
+      padding: 32px 16px 64px;
+    }
+    main {
+      max-width: 760px;
+      margin: 0 auto;
+      background: #181D24;
+      border: 1px solid #2B333F;
+      border-radius: 12px;
+      padding: 32px 28px;
+    }
+    h1 { margin-top: 0; font-size: 24px; border-bottom: 1px solid #2B333F; padding-bottom: 12px; }
+    h2 { margin-top: 28px; font-size: 18px; color: #C79A63; }
+    p, li, td, th { font-size: 14px; color: #D7D3CA; }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+    th, td { border: 1px solid #2B333F; padding: 8px 10px; text-align: left; }
+    th { background: #12151B; }
+    a { color: #C79A63; }
+    .nav { margin-top: 32px; font-size: 13px; display: flex; gap: 16px; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>雲隠れ（Kumogakure）プライバシーポリシー</h1>
+    <p>本サービス「雲隠れ（Kumogakure）」および関連 Web ページ（以下「本サービス」といいます）におけるユーザー情報の取り扱いについて、以下のとおりプライバシーポリシーを定めます。</p>
+
+    <h2>1. 収集・利用する情報と目的</h2>
+    <p>本サービスは、ログインや会員登録（氏名・メールアドレス・電話番号等）を必要とせずにご利用いただけます。本サービスの提供にあたり、以下の情報のみを取り扱います。</p>
+    <ol>
+      <li><strong>端末生成の匿名識別子（匿名 UUID）</strong>：サブスクリプション購入状態の照会、同時利用セッションの重複防止、およびお問い合わせ時の識別。</li>
+      <li><strong>不在証明作成時にお客様が任意に入力した情報（表示名・一言メッセージ・選択テーマ・帰還予定時刻・タイムゾーン）</strong>：不在証明 Web ページおよび共有用 OGP 画像の生成・表示。不在証明の公開機能（シェア）をご利用になった場合、URL を知る第三者が記載内容を閲覧できるため、氏名・住所・電話番号等の個人情報は入力しないでください。</li>
+      <li><strong>アプリ内購入情報（購入履歴・サブスクリプション有効状態）</strong>：有料プラン（隠者プラン）機能の提供および購入の復元。決済処理自体は Apple Inc. により行われ、運営者がクレジットカード番号等の決済情報を取得することはありません。</li>
+      <li><strong>技術的アクセスログ（IP アドレス・リクエスト日時・エラーログ等）</strong>：不正アクセス・スパム防止、障害調査、サービスの安定稼働維持。</li>
+    </ol>
+    <p>※ デジタルデトックスの履歴（雲隠れ帳）はお客様の端末内のみに保存され、運営者のサーバーへ長期送信・蓄積されることはありません。</p>
+
+    <h2>2. データの保持期間および削除</h2>
+    <p>サーバー上に保存された不在証明セッションデータ（表示名・一言メッセージ等）は、発行から <strong>24 時間経過後に自動的に失効（閲覧不可）</strong> となり、その後定期処理により物理削除されます。</p>
+
+    <h2>3. 外部サービスの利用（第三者提供・委託）</h2>
+    <p>本サービスは機能提供およびインフラ運用のため、以下の外部サービスを利用します。運営者は法令に基づく場合を除き、本人の同意なく個人情報を第三者に販売・提供することはありません。</p>
+    <table>
+      <thead>
+        <tr><th>サービス名</th><th>提供事業者</th><th>主な利用目的</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Google Cloud (Cloud Run / Cloud Logging)</td><td>Google LLC</td><td>API サーバー稼働・障害ログ管理</td></tr>
+        <tr><td>Turso</td><td>ChiselStrike, Inc.</td><td>一時セッションデータの保存（東京リージョン）</td></tr>
+        <tr><td>Cloudflare</td><td>Cloudflare, Inc.</td><td>コンテンツ配信キャッシュ・DDoS/不正アクセス対策</td></tr>
+        <tr><td>RevenueCat</td><td>RevenueCat, Inc.</td><td>アプリ内課金（サブスクリプション）状態の検証・管理</td></tr>
+      </tbody>
+    </table>
+
+    <h2>4. 不在証明ページの検索エンジン非公開</h2>
+    <p>不在証明 Web ページには検索エンジンによるインデックスを拒否する設定（<code>noindex, nofollow</code>）を施していますが、SNS 等へお客様ご自身で投稿された URL や画像の拡散範囲は各 SNS の仕様に従います。</p>
+
+    <h2>5. お問い合わせ・削除請求窓口</h2>
+    <p>本ポリシーに関するご質問、または不適切な不在証明ページの削除依頼等は、以下のお問い合わせ窓口よりご連絡ください。</p>
+    <ul>
+      <li>お問い合わせ・削除請求フォーム：<a href="{{ support_form_url }}" rel="noopener noreferrer">Google お問い合わせフォームを開く</a></li>
+    </ul>
+
+    <div class="nav">
+      <a href="/legal/terms">利用規約を見る</a>
+    </div>
+  </main>
+</body>
+</html>

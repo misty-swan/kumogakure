@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" font-family="Shippori Mincho, Noto Serif JP, serif">
+  <!-- Background -->
+  <rect x="0" y="0" width="1200" height="630" fill="{{ bg_color }}" />
+
+  <!-- Subtle misty horizon decoration -->
+  <g opacity="0.18" fill="none" stroke="{{ border_color }}" stroke-width="1.2">
+    <path d="M 48 446 Q 280 418 520 448 T 1152 436" />
+    <path d="M 48 472 Q 340 450 640 474 T 1152 464" />
+  </g>
+
+  <!-- Double hairline frame (36px margin + 6px inner border) -->
+  <rect x="36" y="36" width="1128" height="558" rx="4" fill="none" stroke="{{ border_color }}" stroke-width="1.5" />
+  <rect x="42" y="42" width="1116" height="546" rx="2" fill="none" stroke="{{ border_color }}" stroke-width="0.75" />
+
+  <!-- Top-left Japanese cloud crest -->
+  <g transform="translate(96, 86)" fill="none" stroke="{{ secondary_color }}" stroke-width="1.6" opacity="0.82">
+    <path d="M 4 28 C 4 19, 14 14, 24 18 C 28 9, 44 8, 50 18 C 58 15, 68 20, 68 28 Z" />
+    <line x1="10" y1="36" x2="62" y2="36" stroke-width="1.2" />
+    <line x1="20" y1="43" x2="54" y2="43" stroke-width="1.0" />
+  </g>
+
+  <!-- Top-right hanko seal "隠" (48x48) -->
+  <g transform="translate(1056, 84)">
+    <rect x="0" y="0" width="48" height="48" rx="4" fill="none" stroke="{{ seal_color }}" stroke-width="2" />
+    <rect x="3.5" y="3.5" width="41" height="41" rx="2" fill="none" stroke="{{ seal_color }}" stroke-width="0.75" opacity="0.7" />
+    <text x="24" y="33" text-anchor="middle" font-size="25" fill="{{ seal_color }}">隠</text>
+  </g>
+
+  <!-- Center main absence declaration -->
+  <text x="600" y="206" text-anchor="middle" font-size="44" fill="{{ primary_color }}">ただいま、雲隠れ中</text>
+  <line x1="480" y1="234" x2="720" y2="234" stroke="{{ border_color }}" stroke-width="1" />
+
+  <text x="600" y="286" text-anchor="middle" font-size="34" fill="{{ primary_color }}">帰還予定：{{ return_time_label }}</text>
+
+  {% match message_line1 %}
+    {% when Some with (line1) %}
+      <text x="600" y="{{ msg_line1_y }}" text-anchor="middle" font-size="26" fill="{{ secondary_color }}">{{ line1 }}</text>
+    {% when None %}
+  {% endmatch %}
+
+  {% match message_line2 %}
+    {% when Some with (line2) %}
+      <text x="600" y="{{ msg_line2_y }}" text-anchor="middle" font-size="26" fill="{{ secondary_color }}">{{ line2 }}</text>
+    {% when None %}
+  {% endmatch %}
+
+  {% match display_name %}
+    {% when Some with (name) %}
+      <text x="600" y="{{ display_name_y }}" text-anchor="middle" font-size="24" fill="{{ primary_color }}" opacity="0.9">── {{ name }} ──</text>
+    {% when None %}
+  {% endmatch %}
+
+  <!-- Bottom-left theme tag -->
+  <g transform="translate(96, 502)">
+    <rect x="0" y="0" width="180" height="36" rx="18" fill="{{ tag_bg_color }}" stroke="{{ border_color }}" stroke-width="0.9" />
+    <text x="90" y="25" text-anchor="middle" font-size="18" fill="{{ secondary_color }}">{{ theme_label }}</text>
+  </g>
+
+  <!-- Bottom-right watermark (free plan or when hide_watermark=false) -->
+  {% if !hide_watermark %}
+    <text x="1104" y="528" text-anchor="end" font-size="20" fill="{{ secondary_color }}" opacity="0.65">雲隠れ - Kumogakure</text>
+  {% endif %}
+</svg>

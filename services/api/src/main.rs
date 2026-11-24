@@ -1,5 +1,4 @@
 use std::net::SocketAddr;
-use std::sync::Arc;
 
 use kumogakure_api::build_router;
 use kumogakure_api::config::Config;
@@ -33,13 +32,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         "initialized Kumogakure API state"
     );
 
-    let state = AppState {
-        db: Arc::new(db),
-        fonts: Arc::new(fonts),
-        app_env: config.app_env,
-        base_url: config.base_url,
-        version: env!("CARGO_PKG_VERSION"),
-    };
+    let state = AppState::from_config(db, fonts, config.clone());
 
     let app = build_router(state);
     let addr = SocketAddr::from(([0, 0, 0, 0], config.port));

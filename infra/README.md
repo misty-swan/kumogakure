@@ -9,7 +9,9 @@
 - `forms/google-forms-setup.md` — W0-1: お問い合わせフォーム＆UGC 通報フォーム（`session_id` 事前入力 URL）作成手順
 - `scripts/setup-turso-dev.sh` — W1-5: Turso `kumogakure-dev`（`aws-ap-northeast-1` 東京）作成と `0001_init.sql` 適用
 - `scripts/setup-gcp-dev.sh` — W1-6: GCP API 有効化・Artifact Registry・Service Account・Secret Manager 構築
-- `scripts/deploy-cloudrun-dev.sh` — W1-6: Cloud Build ＋ Cloud Run `kumogakure-api-dev` デプロイと `/health` 疎通確認
+- `scripts/deploy-cloudrun-dev.sh` — W1-6/W2-6: Cloud Build ＋ Cloud Run `kumogakure-api-dev` デプロイと疎通確認
+- `scripts/setup-scheduler-dev.sh` — W2-6: Cloud Scheduler `kumogakure-cleanup-dev`（毎日 04:00 JST `/internal/cleanup`）構築
+- `scripts/setup-wif-github.sh` — W2-6: GitHub Actions 向け GCP Workload Identity Federation 設定
 
 ---
 

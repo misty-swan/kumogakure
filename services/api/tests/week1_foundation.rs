@@ -1,5 +1,4 @@
 use std::path::Path;
-use std::sync::Arc;
 
 use axum::body::Body;
 use axum::http::{Request, StatusCode};
@@ -14,13 +13,7 @@ async fn test_app() -> axum::Router {
         .await
         .expect("in-memory libsql should open");
     let fonts = load_fonts(Path::new("assets/fonts")).expect("bundled fonts should load");
-    let state = AppState {
-        db: Arc::new(db),
-        fonts: Arc::new(fonts),
-        app_env: "test".to_string(),
-        base_url: "http://localhost:8080".to_string(),
-        version: env!("CARGO_PKG_VERSION"),
-    };
+    let state = AppState::for_testing(db, fonts);
     build_router(state)
 }
 

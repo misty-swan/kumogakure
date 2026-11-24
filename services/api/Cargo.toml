@@ -6,17 +6,30 @@ rust-version = "1.82"
 description = "Backend API and OGP image renderer for Kumogakure digital detox app"
 
 [dependencies]
+askama = "0.12"
 axum = "0.8"
+chrono = { version = "0.4", default-features = false, features = ["clock", "std", "serde"] }
+chrono-tz = "0.10"
 fontdb = "0.23"
+hex = "0.4"
 libsql = "0.6"
+nanoid = "0.4"
+rand = "0.8"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+resvg = { version = "0.45", default-features = false, features = ["text"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+sha2 = "0.10"
+subtle = "2.6"
 thiserror = "2"
-tokio = { version = "1", features = ["rt-multi-thread", "macros", "signal"] }
-tower-http = { version = "0.6", features = ["trace", "timeout", "catch-panic"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "signal", "sync"] }
+tower-http = { version = "0.6", features = ["trace", "timeout", "catch-panic", "compression-gzip", "limit"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+unicode-segmentation = "1.12"
+uuid = { version = "1", features = ["v4", "serde"] }
 
 [dev-dependencies]
 http-body-util = "0.1"
+png = "0.17"
 tower = { version = "0.5", features = ["util"] }

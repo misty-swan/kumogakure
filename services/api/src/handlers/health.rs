@@ -29,7 +29,7 @@ pub async fn health(State(state): State<AppState>, Query(query): Query<HealthQue
     let is_deep = matches!(query.deep.as_deref(), Some("1") | Some("true"));
 
     if is_deep {
-        if let Err(err) = probe_database(&state).await {
+        if let Err(err) = state.repo.ping().await {
             tracing::error!(error = %err, "deep healthcheck database probe failed");
             return (
                 StatusCode::SERVICE_UNAVAILABLE,
@@ -51,11 +51,4 @@ pub async fn health(State(state): State<AppState>, Query(query): Query<HealthQue
         }),
     )
         .into_response()
-}
-
-async fn probe_database(state: &AppState) -> Result<(), libsql::Error> {
-    let conn = state.db.connect()?;
-    let mut rows = conn.query("SELECT 1", ()).await?;
-    let _ = rows.next().await?;
-    Ok(())
 }

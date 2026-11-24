@@ -1,0 +1,202 @@
+name: Rust API CI/CD
+
+on:
+  pull_request:
+    paths:
+      - "services/api/**"
+      - ".github/workflows/api-ci-cd.yml"
+  push:
+    branches:
+      - main
+    tags:
+      - "api-v*"
+    paths:
+      - "services/api/**"
+      - ".github/workflows/api-ci-cd.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: api-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  ci:
+    name: Rust Format, Clippy, Tests & Docker Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/api
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Cache Cargo dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: services/api
+
+      - name: Check formatting
+        run: cargo fmt --check
+
+      - name: Run clippy
+        run: cargo clippy --all-targets -- -D warnings
+
+      - name: Run unit and integration tests
+        run: cargo test
+
+      - name: Verify Docker build
+        working-directory: .
+        run: docker build -t kumogakure-api:ci ./services/api
+
+  deploy-dev:
+    name: Deploy to Cloud Run (dev)
+    needs: ci
+    if: >-
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/main' &&
+      vars.GCP_WORKLOAD_IDENTITY_PROVIDER != '' &&
+      vars.GCP_PROJECT_ID != ''
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Authenticate to GCP via Workload Identity Federation
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SA }}
+
+      - name: Setup gcloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker "${{ vars.GCP_REGION || 'asia-northeast1' }}-docker.pkg.dev" --quiet
+
+      - name: Build and push image
+        env:
+          REGION: ${{ vars.GCP_REGION || 'asia-northeast1' }}
+          PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+          AR_REPO: ${{ vars.GCP_AR_REPO || 'kumogakure' }}
+        run: |
+          IMAGE_URI="${REGION}-docker.pkg.dev/${PROJECT_ID}/${AR_REPO}/api:dev-${GITHUB_SHA::12}"
+          docker build -t "${IMAGE_URI}" ./services/api
+          docker push "${IMAGE_URI}"
+          echo "IMAGE_URI=${IMAGE_URI}" >> "$GITHUB_ENV"
+
+      - name: Deploy Cloud Run service (dev)
+        env:
+          REGION: ${{ vars.GCP_REGION || 'asia-northeast1' }}
+          PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+          TURSO_DATABASE_URL: ${{ vars.TURSO_DATABASE_URL_DEV }}
+          REPORT_FORM_URL_TEMPLATE: ${{ vars.REPORT_FORM_URL_TEMPLATE }}
+        run: |
+          SERVICE_URL="$(gcloud run services describe kumogakure-api-dev \
+            --region="${REGION}" \
+            --project="${PROJECT_ID}" \
+            --format='value(status.url)' || true)"
+          ENV_VARS="^@^APP_ENV=dev@TURSO_DATABASE_URL=${TURSO_DATABASE_URL}@REVENUECAT_FAIL_OPEN=true@RUST_LOG=info,kumogakure_api=debug@REPORT_FORM_URL_TEMPLATE=${REPORT_FORM_URL_TEMPLATE}"
+          if [ -n "${SERVICE_URL}" ]; then
+            ENV_VARS="${ENV_VARS}@BASE_URL=${SERVICE_URL}"
+          fi
+
+          gcloud run deploy kumogakure-api-dev \
+            --image="${IMAGE_URI}" \
+            --region="${REGION}" \
+            --allow-unauthenticated \
+            --service-account="kumogakure-api-dev@${PROJECT_ID}.iam.gserviceaccount.com" \
+            --cpu=1 \
+            --memory=512Mi \
+            --cpu-throttling \
+            --min-instances=0 \
+            --max-instances=3 \
+            --concurrency=40 \
+            --timeout=15s \
+            --set-env-vars="${ENV_VARS}" \
+            --set-secrets="TURSO_AUTH_TOKEN=TURSO_AUTH_TOKEN:latest,REVENUECAT_SECRET_API_KEY=REVENUECAT_SECRET_API_KEY:latest,INTERNAL_CLEANUP_SECRET=INTERNAL_CLEANUP_SECRET:latest" \
+            --project="${PROJECT_ID}"
+
+          FINAL_URL="$(gcloud run services describe kumogakure-api-dev \
+            --region="${REGION}" \
+            --project="${PROJECT_ID}" \
+            --format='value(status.url)')"
+          curl -fsS "${FINAL_URL}/health?deep=1"
+          curl -fsS "${FINAL_URL}/api/v1/stats/active"
+
+  deploy-prod:
+    name: Deploy to Cloud Run (prod)
+    needs: ci
+    if: >-
+      github.event_name == 'push' &&
+      startsWith(github.ref, 'refs/tags/api-v') &&
+      vars.GCP_WORKLOAD_IDENTITY_PROVIDER_PROD != '' &&
+      vars.GCP_PROJECT_ID_PROD != ''
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Authenticate to GCP via Workload Identity Federation
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER_PROD }}
+          service_account: ${{ vars.GCP_DEPLOY_SA_PROD }}
+
+      - name: Setup gcloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker "${{ vars.GCP_REGION || 'asia-northeast1' }}-docker.pkg.dev" --quiet
+
+      - name: Build and push image
+        env:
+          REGION: ${{ vars.GCP_REGION || 'asia-northeast1' }}
+          PROJECT_ID: ${{ vars.GCP_PROJECT_ID_PROD }}
+          AR_REPO: ${{ vars.GCP_AR_REPO || 'kumogakure' }}
+        run: |
+          IMAGE_URI="${REGION}-docker.pkg.dev/${PROJECT_ID}/${AR_REPO}/api:${GITHUB_REF_NAME}"
+          docker build -t "${IMAGE_URI}" ./services/api
+          docker push "${IMAGE_URI}"
+          echo "IMAGE_URI=${IMAGE_URI}" >> "$GITHUB_ENV"
+
+      - name: Deploy Cloud Run service (prod)
+        env:
+          REGION: ${{ vars.GCP_REGION || 'asia-northeast1' }}
+          PROJECT_ID: ${{ vars.GCP_PROJECT_ID_PROD }}
+          BASE_URL: ${{ vars.BASE_URL_PROD || 'https://kumogakure.app' }}
+          TURSO_DATABASE_URL: ${{ vars.TURSO_DATABASE_URL_PROD }}
+          REPORT_FORM_URL_TEMPLATE: ${{ vars.REPORT_FORM_URL_TEMPLATE }}
+        run: |
+          ENV_VARS="^@^APP_ENV=prod@BASE_URL=${BASE_URL}@TURSO_DATABASE_URL=${TURSO_DATABASE_URL}@REVENUECAT_FAIL_OPEN=true@RUST_LOG=info@REPORT_FORM_URL_TEMPLATE=${REPORT_FORM_URL_TEMPLATE}"
+          gcloud run deploy kumogakure-api-prod \
+            --image="${IMAGE_URI}" \
+            --region="${REGION}" \
+            --allow-unauthenticated \
+            --service-account="kumogakure-api-prod@${PROJECT_ID}.iam.gserviceaccount.com" \
+            --cpu=1 \
+            --memory=512Mi \
+            --cpu-throttling \
+            --min-instances=0 \
+            --max-instances=3 \
+            --concurrency=40 \
+            --timeout=15s \
+            --set-env-vars="${ENV_VARS}" \
+            --set-secrets="TURSO_AUTH_TOKEN=TURSO_AUTH_TOKEN:latest,REVENUECAT_SECRET_API_KEY=REVENUECAT_SECRET_API_KEY:latest,INTERNAL_CLEANUP_SECRET=INTERNAL_CLEANUP_SECRET:latest" \
+            --project="${PROJECT_ID}"
+
+          FINAL_URL="$(gcloud run services describe kumogakure-api-prod \
+            --region="${REGION}" \
+            --project="${PROJECT_ID}" \
+            --format='value(status.url)')"
+          curl -fsS "${FINAL_URL}/health?deep=1"

@@ -12,8 +12,9 @@ RUN mkdir -p src && \
     cargo build --release --bin kumogakure-api && \
     rm -rf src target/release/kumogakure-api target/release/deps/kumogakure_api* target/release/deps/libkumogakure_api*
 
-# 実ソースコードをコピーしてリリースビルド
+# 実ソースコード・テンプレート・アセットをコピーしてリリースビルド
 COPY src ./src
+COPY templates ./templates
 COPY migrations ./migrations
 COPY assets ./assets
 RUN touch src/lib.rs src/main.rs && cargo build --release --bin kumogakure-api
