@@ -277,3 +277,316 @@ final class MockBackgroundTaskManager: BackgroundTaskManaging {
         endedTaskIDs.append(identifier)
     }
 }
+
+// MARK: - Week 4 Network & Billing Test Doubles
+
+final class URLProtocolStubStorage: @unchecked Sendable {
+    static let shared = URLProtocolStubStorage()
+
+    typealias Handler = @Sendable (URLRequest, Data?) throws -> (HTTPURLResponse, Data)
+
+    private let lock = NSLock()
+    private var handlersByHost: [String: Handler] = [:]
+    private var recordedRequestsByHost: [String: [(request: URLRequest, body: Data?)]] = [:]
+
+    func register(host: String, handler: @escaping Handler) {
+        lock.lock()
+        handlersByHost[host] = handler
+        recordedRequestsByHost[host] = []
+        lock.unlock()
+    }
+
+    func unregister(host: String) {
+        lock.lock()
+        handlersByHost.removeValue(forKey: host)
+        recordedRequestsByHost.removeValue(forKey: host)
+        lock.unlock()
+    }
+
+    func recordedRequests(forHost host: String) -> [(request: URLRequest, body: Data?)] {
+        lock.lock()
+        defer { lock.unlock() }
+        return recordedRequestsByHost[host] ?? []
+    }
+
+    func handle(_ request: URLRequest) throws -> (HTTPURLResponse, Data) {
+        guard let host = request.url?.host else {
+            throw URLError(.badURL)
+        }
+        let body = Self.readBody(from: request)
+        lock.lock()
+        recordedRequestsByHost[host, default: []].append((request: request, body: body))
+        let handler = handlersByHost[host]
+        lock.unlock()
+
+        guard let handler else {
+            throw URLError(.cannotFindHost)
+        }
+        return try handler(request, body)
+    }
+
+    private static func readBody(from request: URLRequest) -> Data? {
+        if let body = request.httpBody {
+            return body
+        }
+        guard let stream = request.httpBodyStream else {
+            return nil
+        }
+        stream.open()
+        defer { stream.close() }
+        var data = Data()
+        let bufferSize = 4096
+        let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: bufferSize)
+        defer { buffer.deallocate() }
+        while stream.hasBytesAvailable {
+            let readCount = stream.read(buffer, maxLength: bufferSize)
+            if readCount <= 0 {
+                break
+            }
+            data.append(buffer, count: readCount)
+        }
+        return data
+    }
+}
+
+final class StubURLProtocol: URLProtocol {
+    override class func canInit(with request: URLRequest) -> Bool {
+        true
+    }
+
+    override class func canonicalRequest(for request: URLRequest) -> URLRequest {
+        request
+    }
+
+    override func startLoading() {
+        do {
+            let (response, data) = try URLProtocolStubStorage.shared.handle(request)
+            client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+            client?.urlProtocol(self, didLoad: data)
+            client?.urlProtocolDidFinishLoading(self)
+        } catch {
+            client?.urlProtocol(self, didFailWithError: error)
+        }
+    }
+
+    override func stopLoading() {}
+
+    static func makeStubbedSession() -> URLSession {
+        let config = URLSessionConfiguration.ephemeral
+        config.protocolClasses = [StubURLProtocol.self]
+        config.timeoutIntervalForRequest = 5.0
+        config.timeoutIntervalForResource = 10.0
+        return URLSession(configuration: config)
+    }
+}
+
+final class MockAPIClient: KumogakureAPIClienting, @unchecked Sendable {
+    struct FinishCall: Equatable, Sendable {
+        let id: String
+        let ownerToken: String
+        let outcome: RemoteFinishOutcome
+    }
+
+    private let lock = NSLock()
+    private var _createRequests: [CreateSessionRequest] = []
+    private var _finishCalls: [FinishCall] = []
+    private var _fetchStatsCount = 0
+
+    var createHandler: (@Sendable (CreateSessionRequest) async throws -> CreateSessionResponse)?
+    var finishHandler: (@Sendable (String, String, RemoteFinishOutcome) async throws -> FinishSessionResponse)?
+    var statsHandler: (@Sendable () async throws -> ActiveStatsResponse)?
+
+    var createRequests: [CreateSessionRequest] {
+        lock.lock()
+        defer { lock.unlock() }
+        return _createRequests
+    }
+
+    var finishCalls: [FinishCall] {
+        lock.lock()
+        defer { lock.unlock() }
+        return _finishCalls
+    }
+
+    var fetchStatsCount: Int {
+        lock.lock()
+        defer { lock.unlock() }
+        return _fetchStatsCount
+    }
+
+    func createSession(_ request: CreateSessionRequest) async throws -> CreateSessionResponse {
+        lock.lock()
+        _createRequests.append(request)
+        let handler = createHandler
+        lock.unlock()
+
+        if let handler {
+            return try await handler(request)
+        }
+        return CreateSessionResponse(
+            id: "mockid1234",
+            ownerToken: "mock-owner-token",
+            status: "active",
+            startedAt: 1_795_150_000,
+            endsAt: 1_795_150_000 + Int64(request.durationMinutes * 60),
+            expiresAt: 1_795_150_000 + 86_400,
+            shareURL: request.isPublic ? "https://kumogakure.app/s/mockid1234" : nil,
+            ogpImageURL: request.isPublic ? "https://kumogakure.app/ogp/mockid1234.png" : nil
+        )
+    }
+
+    func finishSession(
+        id: String,
+        ownerToken: String,
+        outcome: RemoteFinishOutcome
+    ) async throws -> FinishSessionResponse {
+        lock.lock()
+        _finishCalls.append(FinishCall(id: id, ownerToken: ownerToken, outcome: outcome))
+        let handler = finishHandler
+        lock.unlock()
+
+        if let handler {
+            return try await handler(id, ownerToken, outcome)
+        }
+        return FinishSessionResponse(
+            id: id,
+            status: outcome.rawValue,
+            finishedAt: 1_795_151_800
+        )
+    }
+
+    func fetchActiveStats() async throws -> ActiveStatsResponse {
+        lock.lock()
+        _fetchStatsCount += 1
+        let handler = statsHandler
+        lock.unlock()
+
+        if let handler {
+            return try await handler()
+        }
+        return ActiveStatsResponse(activeCount: 0, sampledAt: 1_795_150_000)
+    }
+}
+
+final class MockBillingProvider: BillingProviding, @unchecked Sendable {
+    private let lock = NSLock()
+    private var _products: [SubscriptionPlanProduct] = SubscriptionPlanProduct.fallbackCatalog
+    private var _entitlement: EntitlementSnapshot = .inactive
+    private var _purchaseOutcome: PurchaseOutcome?
+    private var _purchaseError: Error?
+    private var _restoreError: Error?
+    private var _purchaseCallCount = 0
+    private var _restoreCallCount = 0
+    private var _updateCallback: (@Sendable (EntitlementSnapshot) async -> Void)?
+
+    func setProducts(_ products: [SubscriptionPlanProduct]) {
+        lock.lock()
+        _products = products
+        lock.unlock()
+    }
+
+    func setEntitlement(_ entitlement: EntitlementSnapshot) {
+        lock.lock()
+        _entitlement = entitlement
+        lock.unlock()
+    }
+
+    func setPurchaseOutcome(_ outcome: PurchaseOutcome?) {
+        lock.lock()
+        _purchaseOutcome = outcome
+        lock.unlock()
+    }
+
+    func setPurchaseError(_ error: Error?) {
+        lock.lock()
+        _purchaseError = error
+        lock.unlock()
+    }
+
+    func setRestoreError(_ error: Error?) {
+        lock.lock()
+        _restoreError = error
+        lock.unlock()
+    }
+
+    var purchaseCallCount: Int {
+        lock.lock()
+        defer { lock.unlock() }
+        return _purchaseCallCount
+    }
+
+    var restoreCallCount: Int {
+        lock.lock()
+        defer { lock.unlock() }
+        return _restoreCallCount
+    }
+
+    func loadProducts() async throws -> [SubscriptionPlanProduct] {
+        lock.lock()
+        defer { lock.unlock() }
+        return _products
+    }
+
+    func currentEntitlement() async -> EntitlementSnapshot {
+        lock.lock()
+        defer { lock.unlock() }
+        return _entitlement
+    }
+
+    func purchase(productID: String) async throws -> PurchaseOutcome {
+        lock.lock()
+        _purchaseCallCount += 1
+        let error = _purchaseError
+        let outcome = _purchaseOutcome
+        lock.unlock()
+
+        if let error {
+            throw error
+        }
+        if let outcome {
+            if case .purchased(let snapshot) = outcome {
+                setEntitlement(snapshot)
+            }
+            return outcome
+        }
+
+        let active = EntitlementSnapshot(
+            entitlementID: AppConfig.entitlementID,
+            isActive: true,
+            activeProductID: productID,
+            expirationDate: Date().addingTimeInterval(86_400 * 30)
+        )
+        setEntitlement(active)
+        return .purchased(active)
+    }
+
+    func restorePurchases() async throws -> EntitlementSnapshot {
+        lock.lock()
+        _restoreCallCount += 1
+        let error = _restoreError
+        let snapshot = _entitlement
+        lock.unlock()
+
+        if let error {
+            throw error
+        }
+        return snapshot
+    }
+
+    func startObservingUpdates(
+        onUpdate: @escaping @Sendable (EntitlementSnapshot) async -> Void
+    ) -> Task<Void, Never> {
+        lock.lock()
+        _updateCallback = onUpdate
+        lock.unlock()
+        return Task {}
+    }
+
+    func emitUpdate(_ snapshot: EntitlementSnapshot) async {
+        setEntitlement(snapshot)
+        lock.lock()
+        let callback = _updateCallback
+        lock.unlock()
+        await callback?(snapshot)
+    }
+}

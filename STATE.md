@@ -9,8 +9,8 @@
 ## 1. サマリー
 
 - **最終更新日**: `2026-11-24`
-- **現在フェーズ**: `Week 3 完了（Xcode 16.4 実コンパイル＆XCTest 33 件 CI パス）→ Week 4（不在証明連携・ローカル課金）へ移行可能`
-- **全体進捗**: **19 / 32 タスク完了**（**Week 0・Week 1・Week 2・Week 3 完了**）
+- **現在フェーズ**: `Week 4 開発タスク（W4-1〜W4-5）実装完了（Linux 静的検証済 → 承認後 GitHub Actions iOS CI で実コンパイル＆XCTest 検証）`
+- **全体進捗**: **24 / 32 タスク完了**（**Week 0・Week 1・Week 2・Week 3 完了、Week 4 W4-1〜W4-5 完了〔W4-6 オーナー作業対象外〕**）
 
 | フェーズ | 完了 | 進行中 | 未着手 | 主な状況 |
 | :--- | :---: | :---: | :---: | :--- |
@@ -18,7 +18,7 @@
 | **Week 1**（初期化・素材・`dev` インフラ） | 6 | 0 | 0 | **全完了**（モノレポ・画像・音声・フォント・Turso `dev`・Cloud Run `dev` `/health?deep=1` 疎通済） |
 | **Week 2**（Rust API・OGP・DB 完成） | 6 | 0 | 0 | **全完了**（ドメイン・全 8 API/Web/OGP・RC 検証・`/internal/cleanup`・CI/CD・Cloud Scheduler・`dev` E2E 疎通済） |
 | **Week 3**（iOS コア体験） | 6 | 0 | 0 | **全完了**（GitHub Actions `macos-15` / Xcode 16.4・`iPhone 16 Pro` シミュレータでビルド＆XCTest 33 件全パス済） |
-| **Week 4**（不在証明連携・ローカル課金） | 0 | 0 | 6 | — |
+| **Week 4**（不在証明連携・ローカル課金） | 5 | 0 | 1 | **W4-1〜W4-5 実装完了**（Linux 静的整合検証済・push 後に iOS CI 検証予定）／**W4-6** オーナー作業待ち |
 | **Week 5**（独自ドメイン・CF・RC 本番） | 0 | 0 | 5 | — |
 | **Week 6**（TestFlight QA・App Store 審査） | 0 | 0 | 4 | — |
 
@@ -86,12 +86,12 @@
 
 | 週 | ID | タスク概要 | ステータス |
 | :--- | :--- | :--- | :--- |
-| Week 4 | **W4-1** | `KumogakureAPIClient` ＋ `OfflineFinishQueue` | `⏳ 未着手` |
-| Week 4 | **W4-2** | S-02 不在証明作成 ＋ `ShareCardRenderer`（1:1 / 9:16） | `⏳ 未着手` |
-| Week 4 | **W4-3** | S-06 雲隠れ帳（7 日制限・Swift Charts）＋ S-08 設定 | `⏳ 未着手` |
-| Week 4 | **W4-4** | S-07 Paywall ＋ `.storekit` ローカル課金検証 | `⏳ 未着手` |
-| Week 4 | **W4-5** | 同時雲隠れ人数（0 人代替コピー）＋ タスクキル復帰判定 | `⏳ 未着手` |
-| Week 4 | **W4-6** | Apple Developer Program ＆ Small Business Program 申請 | `⏳ 未着手` |
+| Week 4 | **W4-1** | `KumogakureAPIClient` ＋ `OfflineFinishQueue` | `✅ 完了`（[KumogakureAPIClient.swift](apps/ios/Kumogakure/Core/Network/KumogakureAPIClient.swift), [OfflineFinishQueue.swift](apps/ios/Kumogakure/Core/Storage/OfflineFinishQueue.swift), `URLProtocol` XCTest 11 件追加） |
+| Week 4 | **W4-2** | S-02 不在証明作成 ＋ `ShareCardRenderer`（1:1 / 9:16） | `✅ 完了`（[AbsenceShareView.swift](apps/ios/Kumogakure/Features/Share/AbsenceShareView.swift), [AbsenceCardSnapshotView.swift](apps/ios/Kumogakure/DesignSystem/AbsenceCardSnapshotView.swift), [ShareCardRenderer.swift](apps/ios/Kumogakure/Features/Share/ShareCardRenderer.swift), [ActivityViewControllerWrapper.swift](apps/ios/Kumogakure/Features/Share/ActivityViewControllerWrapper.swift), S-04 記録画像シェア対応） |
+| Week 4 | **W4-3** | S-06 雲隠れ帳（7 日制限・Swift Charts）＋ S-08 設定 | `✅ 完了`（[HistoryView.swift](apps/ios/Kumogakure/Features/History/HistoryView.swift), [HistoryAnalytics.swift](apps/ios/Kumogakure/Features/History/HistoryAnalytics.swift), [SettingsView.swift](apps/ios/Kumogakure/Features/Settings/SettingsView.swift), [SafariWebView.swift](apps/ios/Kumogakure/Features/Settings/SafariWebView.swift)） |
+| Week 4 | **W4-4** | S-07 Paywall ＋ `.storekit` ローカル課金検証 | `✅ 完了`（[SubscriptionManager.swift](apps/ios/Kumogakure/Core/Billing/SubscriptionManager.swift), [PaywallView.swift](apps/ios/Kumogakure/Features/Paywall/PaywallView.swift), [Kumogakure.storekit](apps/ios/Kumogakure/Resources/Kumogakure.storekit), [Kumogakure.xcscheme](apps/ios/Kumogakure.xcodeproj/xcshareddata/xcschemes/Kumogakure.xcscheme), StoreKit テスト追加） |
+| Week 4 | **W4-5** | 同時雲隠れ人数（0 人代替コピー）＋ タスクキル復帰判定 | `✅ 完了`（[DetoxSessionStore.swift](apps/ios/Kumogakure/Core/Timer/DetoxSessionStore.swift), [KumogakureComponents.swift](apps/ios/Kumogakure/DesignSystem/KumogakureComponents.swift), [HomeView.swift](apps/ios/Kumogakure/Features/Home/HomeView.swift), [DetoxSessionView.swift](apps/ios/Kumogakure/Features/Detox/DetoxSessionView.swift), 同時人数/復帰リモート同期テスト追加） |
+| Week 4 | **W4-6** | Apple Developer Program ＆ Small Business Program 申請 | `⏳ 未着手`（オーナー作業待ち） |
 | Week 5 | **W5-1** | 独自ドメイン取得 ＋ Cloudflare DNS / Cache / WAF | `⏳ 未着手` |
 | Week 5 | **W5-2** | Bundle ID 確定・ASC 課金商品・RevenueCat 本番連携 | `⏳ 未着手` |
 | Week 5 | **W5-3** | 法務ドキュメント確定版 HTML 反映（`/legal/privacy`, `/legal/terms`） | `⏳ 未着手` |
@@ -106,6 +106,7 @@
 
 ## 4. 直近の検証ログ
 
+- **iOS アプリ Week 4 実装・プロジェクト整合検証 (`2026-11-24`, Linux 環境)**: `apps/ios` にて W4-1〜W4-5 を実装（App 36 Swift ファイル + [Kumogakure.storekit](apps/ios/Kumogakure/Resources/Kumogakure.storekit) + XCTest 11 Swift ファイル〔計 **60 テストメソッド**〕、旧 `Week4BridgeSheets.swift` 削除）。Python 静的検証により、`project.pbxproj` 全 ID 一意性＆参照解決、ビルドフェーズとディスクの 1:1 一致、`.storekit` JSON（年額 `P1Y` 7 日無料トライアル / 月額 `P1M`）の Test Resources 限定配置、`.xcscheme` `StoreKitConfigurationFileReference` XML、全 Swift 括弧整合・`#Predicate` 制約・正本識別子・無音時 `AVAudioSession` 非起動の維持を確認済（※実 Xcode コンパイル＆XCTest 60 件は承認・push 後の GitHub Actions `iOS CI` で確認予定）。
 - **iOS アプリ Week 3 Xcode ビルド＆XCTest 検証 (`2026-11-24`, GitHub Actions `macos-15`)**: コミット `bf946c1` に対する [iOS CI run 45326146181](https://github.com/misty-swan/kumogakure/actions/runs/45326146181)（Xcode `16.4` Build `16F6` / シミュレータ `iPhone 16 Pro` `iOS-26-2`）にて、`Kumogakure` アプリと `KumogakureTests` の実コンパイル（`SWIFT_STRICT_CONCURRENCY = complete`）および全 **33 件** のユニットテストパス（`** TEST SUCCEEDED **`）を確認済（`DetoxTimerEngineTests` 4 件、`AppLifecycleMonitorTests` 7 件、`MorningTargetCalculatorTests` 6 件、`AmbientAudioManagerTests` 5 件、`KeychainAndStorageTests` 4 件、`DetoxSessionStoreTests` 7 件）。
 - **iOS アプリ Week 3 実装・プロジェクト整合検証 (`2026-11-24`, Linux WSL2 環境)**: Xcode / `swiftc` 非搭載の Linux 環境で `apps/ios`（App 25 Swift ファイル + XCTest 7 Swift ファイル〔計 33 テストメソッド〕 + `project.pbxproj` + `Kumogakure.xcscheme` + `Info.plist` + `Assets.xcassets`）を生成し、Python スクリプトによる静的・構造整合チェックを実施して全パスを確認済（`pbxproj` ID 一意性＆全参照整合、ビルドフェーズとディスク上 Swift/`.m4a`/`Assets.xcassets` の 1:1 一致、`Info.plist` 必須キー、`xcscheme` XML、`Assets.xcassets` JSON＆画像実在、全 Swift 括弧整合、SwiftData `#Predicate` / `@Observable` 制約・正本識別子・2.5.4 無音時 `AVAudioSession` 非起動ガード検証）。
 - **Rust API ビルド・テスト検証 (`2026-11-24`)**: `services/api` で `cargo fmt --check`、`cargo clippy --all-targets -- -D warnings`、`cargo test` を実行し、ユニットテスト 15 件・[api_integration.rs](services/api/tests/api_integration.rs) インメモリ DB 統合テスト 8 件・[week1_foundation.rs](services/api/tests/week1_foundation.rs) 基盤テスト 4 件の**計 27 件全パス**（OGP `1200x630` PNG 生成・XML/HTML エスケープ・RevenueCat モック 60 秒キャッシュ＆Fail-Open・410/404・`/internal/cleanup` 検証含む）。
@@ -132,7 +133,7 @@
 
 ## 5. 次のアクション
 
-1. **W0-1 最終確認（オーナー操作）**: フォーム ①・② 両方のメール通知 ON と 1 回ずつのテスト送信受信確認（手順: [infra/forms/google-forms-setup.md](infra/forms/google-forms-setup.md)）。
-2. **Week 4 着手（`W4-1`〜`W4-6`）**: `KumogakureAPIClient` + `OfflineFinishQueue`、S-02 不在証明作成 + `ShareCardRenderer`、S-06 雲隠れ帳、S-07 Paywall + `.storekit` ローカル課金、S-08 設定、同時雲隠れ人数連携を実装する。
-3. **（任意）手元 Mac / 実機での UI 目視確認**: [apps/ios/Kumogakure.xcodeproj](apps/ios/Kumogakure.xcodeproj/project.pbxproj) を開き、S-01 / S-03 / S-04 / S-05 の実機画面・マナーモード環境音再生を確認する。
-4. **（任意）RevenueCat `dev` キー登録**: Week 4 の課金実機/API 連携テスト時に、RevenueCat Sandbox Secret API Key を GCP Secret Manager `REVENUECAT_SECRET_API_KEY` へ登録する（現在はプレースホルダーのため `REVENUECAT_FAIL_OPEN=true` により許容動作中）。
+1. **Week 4 コミット・push ＆ `iOS CI` 実コンパイル＆XCTest 60 件パス確認**: 差分承認後に `main` へ push し、GitHub Actions `iOS CI` で実ビルド・テスト完走を確認する。
+2. **W4-6（オーナー作業）**: Apple Developer Program 登録 ＆ Small Business Program（15%）申請開始。
+3. **W0-1 最終確認（オーナー操作）**: フォーム ①・② 両方のメール通知 ON と 1 回ずつのテスト送信受信確認（手順: [infra/forms/google-forms-setup.md](infra/forms/google-forms-setup.md)）。
+4. **Week 5 着手（`W5-1`〜`W5-5`）**: 独自ドメイン取得 ＋ Cloudflare DNS/Cache/WAF、Bundle ID 最終確定・ASC 課金商品・RevenueCat 本番連携、法務 HTML 確定版反映、アプリアイコン・スクリーンショット・ASO・デモ動画準備へ進む。

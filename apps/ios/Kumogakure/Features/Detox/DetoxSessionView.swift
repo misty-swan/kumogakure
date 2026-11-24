@@ -54,6 +54,16 @@ struct DetoxSessionView: View {
             startFeedbackTrigger.toggle()
             registerControlInteraction()
         }
+        .task {
+            await store.refreshActiveParticipants()
+            while !Task.isCancelled {
+                try? await Task.sleep(
+                    nanoseconds: UInt64(AppConfig.activeStatsRefreshIntervalSeconds * 1_000_000_000)
+                )
+                guard !Task.isCancelled else { break }
+                await store.refreshActiveParticipants()
+            }
+        }
         .task(id: controlInteractionToken) {
             try? await Task.sleep(
                 nanoseconds: UInt64(AppConfig.controlsAutoDimDelaySeconds * 1_000_000_000)

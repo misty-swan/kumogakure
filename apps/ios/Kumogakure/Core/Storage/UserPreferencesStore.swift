@@ -12,6 +12,7 @@ final class UserPreferencesStore {
         static let soundID = "pref_sound_id"
         static let cardStyle = "pref_card_style"
         static let displayName = "pref_display_name"
+        static let hideWatermark = "pref_hide_watermark"
         static let keepScreenOn = "pref_keep_screen_on"
         static let morningTargetMinutes = "pref_morning_target_minutes"
         static let hasDismissedProBanner = "has_dismissed_pro_banner"
@@ -54,6 +55,10 @@ final class UserPreferencesStore {
 
     var displayName: String {
         didSet { defaults.set(displayName, forKey: Keys.displayName) }
+    }
+
+    var hideWatermark: Bool {
+        didSet { defaults.set(hideWatermark, forKey: Keys.hideWatermark) }
     }
 
     var keepScreenOn: Bool {
@@ -107,6 +112,7 @@ final class UserPreferencesStore {
         self.soundIDRaw = defaults.string(forKey: Keys.soundID) ?? SoundID.rain.rawValue
         self.cardStyleRaw = defaults.string(forKey: Keys.cardStyle) ?? CardStyle.washiClassic.rawValue
         self.displayName = defaults.string(forKey: Keys.displayName) ?? ""
+        self.hideWatermark = defaults.object(forKey: Keys.hideWatermark) as? Bool ?? false
         self.keepScreenOn = defaults.object(forKey: Keys.keepScreenOn) as? Bool ?? false
 
         let storedMorning = defaults.object(forKey: Keys.morningTargetMinutes) as? Int
@@ -198,6 +204,9 @@ final class UserPreferencesStore {
         let resolvedStyle = CardStyle.resolved(rawValue: cardStyleRaw, isPro: isPro)
         if resolvedStyle.rawValue != cardStyleRaw {
             cardStyleRaw = resolvedStyle.rawValue
+        }
+        if !isPro && hideWatermark {
+            hideWatermark = false
         }
     }
 

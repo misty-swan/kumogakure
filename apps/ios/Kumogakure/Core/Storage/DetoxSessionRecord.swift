@@ -83,6 +83,7 @@ protocol DetoxSessionPersisting: AnyObject {
     func fetchRecentRecords(since cutoff: Date) throws -> [DetoxSessionRecord]
     func countOlderRecords(before cutoff: Date) throws -> Int
     func fetchAllRecords() throws -> [DetoxSessionRecord]
+    func fetchPendingRemoteFinishRecords() throws -> [DetoxSessionRecord]
 }
 
 @MainActor
@@ -146,6 +147,14 @@ final class SwiftDataSessionRepository: DetoxSessionPersisting {
     func fetchAllRecords() throws -> [DetoxSessionRecord] {
         let descriptor = FetchDescriptor<DetoxSessionRecord>(
             sortBy: [SortDescriptor(\.startedAt, order: .reverse)]
+        )
+        return try modelContext.fetch(descriptor)
+    }
+
+    func fetchPendingRemoteFinishRecords() throws -> [DetoxSessionRecord] {
+        let descriptor = FetchDescriptor<DetoxSessionRecord>(
+            predicate: #Predicate { $0.needsRemoteFinishSync == true },
+            sortBy: [SortDescriptor(\.startedAt, order: .forward)]
         )
         return try modelContext.fetch(descriptor)
     }

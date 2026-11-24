@@ -7,7 +7,7 @@ struct HomeView: View {
     @State private var showCustomDurationPicker = false
     @State private var showHistorySheet = false
     @State private var showSettingsSheet = false
-    @State private var paywallTriggerReason: String?
+    @State private var paywallTrigger: PaywallTrigger?
     @State private var selectionFeedbackCount = 0
     @State private var nowForReturnPreview = Date()
 
@@ -70,6 +70,9 @@ struct HomeView: View {
         .onAppear {
             nowForReturnPreview = Date()
         }
+        .task {
+            await store.refreshActiveParticipants()
+        }
         .onDisappear {
             store.stopSoundPreview()
         }
@@ -85,32 +88,15 @@ struct HomeView: View {
             }
         }
         .sheet(isPresented: $showHistorySheet) {
-            Week4HistoryPlaceholderSheet(
-                store: store,
-                onOpenPaywall: { reason in
-                    showHistorySheet = false
-                    paywallTriggerReason = reason
-                }
-            )
+            HistoryView(store: store)
         }
         .sheet(isPresented: $showSettingsSheet) {
-            Week4SettingsPlaceholderSheet(
-                store: store,
-                onOpenPaywall: { reason in
-                    showSettingsSheet = false
-                    paywallTriggerReason = reason
-                }
-            )
+            SettingsView(store: store)
         }
-        .sheet(
-            isPresented: Binding(
-                get: { paywallTriggerReason != nil },
-                set: { if !$0 { paywallTriggerReason = nil } }
-            )
-        ) {
-            Week4PaywallPlaceholderSheet(
-                reason: paywallTriggerReason ?? "隠者プランのご案内"
-            )
+        .sheet(item: $paywallTrigger) { trigger in
+            PaywallView(store: store, trigger: trigger) {
+                applyPostPurchaseSelection(for: trigger)
+            }
         }
         .sheet(
             isPresented: Binding(
@@ -118,7 +104,7 @@ struct HomeView: View {
                 set: { if !$0 && store.state == .preparingShare { store.cancelSharePreparation() } }
             )
         ) {
-            Week4SharePlaceholderSheet(store: store)
+            AbsenceShareView(store: store)
         }
     }
 
@@ -164,6 +150,7 @@ struct HomeView: View {
 
             QuietStatusBadge(
                 othersCount: store.othersActiveCount,
+                activeCountPrefix: "現在、",
                 zeroCopy: "いま、穏やかな静寂が広がっています"
             )
         }
@@ -243,7 +230,7 @@ struct HomeView: View {
 
         return Button {
             if isLocked {
-                paywallTriggerReason = "「\(theme.displayName)」は隠者プランで解放されます"
+                paywallTrigger = .theme(theme)
             } else {
                 preferences.selectTheme(theme)
                 selectionFeedbackCount += 1
@@ -319,7 +306,7 @@ struct HomeView: View {
 
         return Button {
             if isLocked {
-                paywallTriggerReason = "環境音「\(sound.displayName)」は隠者プランで解放されます"
+                paywallTrigger = .sound(sound)
             } else {
                 preferences.selectSound(sound)
                 selectionFeedbackCount += 1
@@ -423,10 +410,28 @@ struct HomeView: View {
 
     private func handlePurposeTap(_ purpose: PurposeID) {
         if purpose.isPro && !store.isPro {
-            paywallTriggerReason = "自由な一言入力は隠者プランで解放されます"
+            paywallTrigger = .purposeCustom
         } else {
             preferences.selectPurpose(purpose)
             selectionFeedbackCount += 1
+        }
+    }
+
+    private func applyPostPurchaseSelection(for trigger: PaywallTrigger) {
+        guard store.isPro else { return }
+        switch trigger {
+        case .theme(let theme):
+            preferences.selectTheme(theme)
+            selectionFeedbackCount += 1
+        case .sound(let sound):
+            preferences.selectSound(sound)
+            selectionFeedbackCount += 1
+            store.previewSound(sound)
+        case .purposeCustom:
+            preferences.selectPurpose(.custom)
+            selectionFeedbackCount += 1
+        default:
+            break
         }
     }
 }

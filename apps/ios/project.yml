@@ -36,11 +36,18 @@ targets:
           - "$(inherited)"
           - "@executable_path/Frameworks"
         SWIFT_STRICT_CONCURRENCY: complete
+    scheme:
+      run:
+        storeKitConfiguration: Kumogakure/Resources/Kumogakure.storekit
+      testTargets:
+        - KumogakureTests
   KumogakureTests:
     type: bundle.unit-test
     platform: iOS
     sources:
       - path: KumogakureTests
+      - path: Kumogakure/Resources/Kumogakure.storekit
+        buildPhase: resources
     dependencies:
       - target: Kumogakure
     settings:

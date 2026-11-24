@@ -103,18 +103,36 @@ struct KumogakureChip: View {
 /// Quiet solidarity badge showing active participants or serene fallback copy (OQ-07).
 struct QuietStatusBadge: View {
     let othersCount: Int?
+    let activeCountPrefix: String
     let zeroCopy: String
 
-    init(othersCount: Int?, zeroCopy: String = "いま、穏やかな静寂が広がっています") {
+    init(
+        othersCount: Int?,
+        activeCountPrefix: String = "現在、ほかに ",
+        zeroCopy: String = "いま、穏やかな静寂が広がっています"
+    ) {
         self.othersCount = othersCount
+        self.activeCountPrefix = activeCountPrefix
         self.zeroCopy = zeroCopy
     }
 
-    private var message: String {
+    static func formattedMessage(
+        othersCount: Int?,
+        activeCountPrefix: String = "現在、ほかに ",
+        zeroCopy: String = "いま、穏やかな静寂が広がっています"
+    ) -> String {
         if let othersCount, othersCount > 0 {
-            return "現在、ほかに \(othersCount) 人が雲隠れしています"
+            return "\(activeCountPrefix)\(othersCount) 人が雲隠れしています"
         }
         return zeroCopy
+    }
+
+    private var message: String {
+        Self.formattedMessage(
+            othersCount: othersCount,
+            activeCountPrefix: activeCountPrefix,
+            zeroCopy: zeroCopy
+        )
     }
 
     var body: some View {

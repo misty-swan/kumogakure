@@ -7,10 +7,12 @@ enum AppConfig {
     static let keychainAnonymousUserUUIDAccount = "kumogakure.anonymous_user_uuid"
 
     // MARK: - RevenueCat / StoreKit (Canonical IDs)
+    static let subscriptionGroupName = "Kumogakure Hermit Pro"
     static let entitlementID = "hermit_pro"
     static let offeringID = "default"
     static let monthlyProductID = "app.kumogakure.pro.monthly"
     static let yearlyProductID = "app.kumogakure.pro.yearly"
+    static let revenueCatPublicAPIKey = ""
 
     // MARK: - Endpoints & External Links
     static var apiBaseURL: URL {
@@ -25,6 +27,10 @@ enum AppConfig {
         string: "https://docs.google.com/forms/d/e/1FAIpQLScOjICc8nN83rTRGXd2oYbvBicAxNB8yvrFXsNFjE00xLIqgQ/viewform"
     )!
 
+    static let appleStandardEULAURL = URL(
+        string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/"
+    )!
+
     static var privacyPolicyURL: URL {
         apiBaseURL.appendingPathComponent("legal/privacy")
     }
@@ -32,6 +38,14 @@ enum AppConfig {
     static var termsOfServiceURL: URL {
         apiBaseURL.appendingPathComponent("legal/terms")
     }
+
+    // MARK: - API & Text Bounds
+    static let apiRequestTimeoutSeconds: TimeInterval = 5.0
+    static let apiResourceTimeoutSeconds: TimeInterval = 10.0
+    static let sessionTTLSeconds: TimeInterval = 86_400
+    static let activeStatsRefreshIntervalSeconds: TimeInterval = 60.0
+    static let maxDisplayNameLength = 20
+    static let maxMessageLength = 40
 
     // MARK: - Timer & Lifecycle Bounds
     static let minDurationMinutes = 15

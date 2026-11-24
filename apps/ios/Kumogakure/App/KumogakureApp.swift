@@ -43,6 +43,13 @@ private struct AppRootShell: View {
             _ = store.anonymousUserUUID
             store.recoverInProgressSessionIfNeeded()
             sessionStore = store
+
+            let isRunningTests = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+            if !isRunningTests {
+                Task {
+                    await store.onAppLaunch()
+                }
+            }
         }
     }
 }

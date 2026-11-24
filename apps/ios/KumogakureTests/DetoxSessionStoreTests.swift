@@ -15,6 +15,8 @@ final class DetoxSessionStoreTests: XCTestCase {
         let container: ModelContainer
         let repository: SwiftDataSessionRepository
         let preferences: UserPreferencesStore
+        let apiClient: MockAPIClient
+        let billingProvider: MockBillingProvider
         let defaults: UserDefaults
         let suiteName: String
 
@@ -51,6 +53,9 @@ final class DetoxSessionStoreTests: XCTestCase {
         let container = try ModelContainer(for: DetoxSessionRecord.self, configurations: configuration)
         let repository = SwiftDataSessionRepository(modelContext: container.mainContext)
         let idleController = MockIdleTimerController()
+        let apiClient = MockAPIClient()
+        let billingProvider = MockBillingProvider()
+        let subscriptionManager = SubscriptionManager(billing: billingProvider)
 
         let store = DetoxSessionStore(
             clock: clock,
@@ -61,7 +66,9 @@ final class DetoxSessionStoreTests: XCTestCase {
             repository: repository,
             preferences: preferences,
             userIDProvider: KeychainHelper(store: InMemoryKeychainStore()),
-            idleTimerController: idleController
+            idleTimerController: idleController,
+            apiClient: apiClient,
+            subscriptionManager: subscriptionManager
         )
 
         return SUT(
@@ -75,6 +82,8 @@ final class DetoxSessionStoreTests: XCTestCase {
             container: container,
             repository: repository,
             preferences: preferences,
+            apiClient: apiClient,
+            billingProvider: billingProvider,
             defaults: defaults,
             suiteName: suiteName
         )
@@ -242,5 +251,64 @@ final class DetoxSessionStoreTests: XCTestCase {
             return XCTFail("Expected interrupted recovery")
         }
         XCTAssertEqual(summary.actualDurationSeconds, 300)
+    }
+
+    func testTaskKillRecoveryCompletedSyncsRemoteFinishAndClearsToken() async throws {
+        let sut = try makeSUT()
+        defer { sut.cleanup() }
+
+        let start = sut.clock.now.addingTimeInterval(-1800)
+        let ends = sut.clock.now.addingTimeInterval(-60)
+        let record = DetoxSessionRecord(
+            remoteID: "recovcomp1",
+            ownerToken: "recov-token-1",
+            isPublic: true,
+            plannedDurationSeconds: 1740,
+            statusRaw: SessionStatus.active.rawValue,
+            startedAt: start,
+            plannedEndsAt: ends
+        )
+        try sut.repository.insert(record)
+        try sut.repository.save()
+
+        sut.store.recoverInProgressSessionIfNeeded()
+        await sut.store.awaitPendingBackgroundSync()
+
+        XCTAssertEqual(sut.apiClient.finishCalls.count, 1)
+        XCTAssertEqual(sut.apiClient.finishCalls.first?.id, "recovcomp1")
+        XCTAssertEqual(sut.apiClient.finishCalls.first?.ownerToken, "recov-token-1")
+        XCTAssertEqual(sut.apiClient.finishCalls.first?.outcome, .completed)
+        XCTAssertFalse(record.needsRemoteFinishSync)
+        XCTAssertNil(record.ownerToken)
+    }
+
+    func testTaskKillRecoveryInterruptedSyncsCanceledAndClearsToken() async throws {
+        let sut = try makeSUT()
+        defer { sut.cleanup() }
+
+        let start = sut.clock.now.addingTimeInterval(-300)
+        let ends = sut.clock.now.addingTimeInterval(600)
+        let record = DetoxSessionRecord(
+            remoteID: "recovint01",
+            ownerToken: "recov-token-2",
+            isPublic: false,
+            plannedDurationSeconds: 900,
+            statusRaw: SessionStatus.active.rawValue,
+            startedAt: start,
+            plannedEndsAt: ends
+        )
+        try sut.repository.insert(record)
+        try sut.repository.save()
+        sut.preferences.lastBackgroundWasScreenLock = false
+
+        sut.store.recoverInProgressSessionIfNeeded()
+        await sut.store.awaitPendingBackgroundSync()
+
+        XCTAssertEqual(sut.apiClient.finishCalls.count, 1)
+        XCTAssertEqual(sut.apiClient.finishCalls.first?.id, "recovint01")
+        XCTAssertEqual(sut.apiClient.finishCalls.first?.ownerToken, "recov-token-2")
+        XCTAssertEqual(sut.apiClient.finishCalls.first?.outcome, .canceled)
+        XCTAssertFalse(record.needsRemoteFinishSync)
+        XCTAssertNil(record.ownerToken)
     }
 }

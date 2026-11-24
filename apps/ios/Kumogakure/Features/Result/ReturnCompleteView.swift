@@ -1,12 +1,21 @@
 import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#endif
 
-/// S-04 Return Complete Screen: clear landscape, gentle praise, cumulative totals, and post-session share.
+/// S-04 Return Complete Screen: clear landscape, gentle praise, cumulative totals, and post-session image share.
 struct ReturnCompleteView: View {
+    private struct ShareSheetItem: Identifiable {
+        let id = UUID()
+        let items: [Any]
+    }
+
     @Bindable var store: DetoxSessionStore
     let summary: SessionResultSummary
 
     @State private var appeared = false
-    @State private var showPaywallPlaceholder = false
+    @State private var showPaywall = false
+    @State private var shareSheetItem: ShareSheetItem?
 
     private var sessionDurationText: String {
         DurationFormatter.japaneseDuration(seconds: summary.actualDurationSeconds)
@@ -14,10 +23,6 @@ struct ReturnCompleteView: View {
 
     private var cumulativeDurationText: String {
         DurationFormatter.japaneseDuration(seconds: store.cumulativeSummary.totalCompletedSeconds)
-    }
-
-    private var completionShareText: String {
-        "\(sessionDurationText)の雲隠れから帰還しました。静かな時間でした。\n#雲隠れ"
     }
 
     var body: some View {
@@ -79,10 +84,12 @@ struct ReturnCompleteView: View {
                 Spacer()
 
                 VStack(spacing: 12) {
-                    ShareLink(item: completionShareText) {
+                    Button {
+                        shareCompletionCard()
+                    } label: {
                         HStack(spacing: 8) {
                             Image(systemName: "square.and.arrow.up")
-                            Text("今日の雲隠れを記録でシェア")
+                            Text("今日の雲隠れを記録画像でシェア")
                         }
                         .font(KumogakureTypography.chipLabel)
                         .foregroundStyle(KumogakureColors.washiText)
@@ -97,6 +104,7 @@ struct ReturnCompleteView: View {
                                 .stroke(KumogakureColors.mistBorder, lineWidth: 1)
                         )
                     }
+                    .buttonStyle(.plain)
 
                     Button("ホームへ戻る") {
                         store.returnToHome()
@@ -111,8 +119,14 @@ struct ReturnCompleteView: View {
         .onAppear {
             appeared = true
         }
-        .sheet(isPresented: $showPaywallPlaceholder) {
-            Week4PaywallPlaceholderSheet(reason: "すべての風景・環境音と雲隠れ帳の全履歴を解放できます")
+        .sheet(isPresented: $showPaywall) {
+            PaywallView(store: store, trigger: .milestoneBanner)
+        }
+        .sheet(item: $shareSheetItem) { item in
+            ActivityViewControllerWrapper(activityItems: item.items) { _ in
+                shareSheetItem = nil
+            }
+            .presentationDetents([.medium, .large])
         }
     }
 
@@ -130,7 +144,7 @@ struct ReturnCompleteView: View {
                         .font(KumogakureTypography.caption)
                         .foregroundStyle(KumogakureColors.usuzumiText)
                     Button("詳しく見る") {
-                        showPaywallPlaceholder = true
+                        showPaywall = true
                     }
                     .font(KumogakureTypography.caption.weight(.semibold))
                     .foregroundStyle(KumogakureColors.shinonomeAccent)
@@ -150,5 +164,31 @@ struct ReturnCompleteView: View {
                 .accessibilityLabel("案内を閉じる")
             }
         }
+    }
+
+    @MainActor
+    private func shareCompletionCard() {
+        let payload = AbsenceCardPayload(
+            theme: summary.theme,
+            cardStyle: summary.cardStyle,
+            hideWatermark: summary.hideWatermark,
+            displayName: summary.displayName,
+            message: summary.message,
+            mode: .completedReturn(
+                actualDurationSeconds: summary.actualDurationSeconds,
+                completedAt: summary.finishedAt,
+                timeZone: .current
+            )
+        )
+        var items: [Any] = []
+        #if canImport(UIKit)
+        if let image = ShareCardRenderer.renderImage(payload: payload, format: .square) {
+            items.append(image)
+        }
+        #endif
+        items.append(ShareMessageBuilder.completionShareText(
+            actualDurationSeconds: summary.actualDurationSeconds
+        ))
+        shareSheetItem = ShareSheetItem(items: items)
     }
 }

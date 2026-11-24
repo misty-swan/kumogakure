@@ -1,6 +1,7 @@
 import Foundation
 import Observation
 import SwiftData
+import UserNotifications
 
 /// Snapshot summary presented on S-04 (completed) and S-05 (canceled / interrupted).
 struct SessionResultSummary: Equatable, Sendable {
@@ -8,9 +9,39 @@ struct SessionResultSummary: Equatable, Sendable {
     let plannedDurationSeconds: Int
     let actualDurationSeconds: Int
     let theme: ThemeID
+    let cardStyle: CardStyle
+    let hideWatermark: Bool
+    let displayName: String?
+    let message: String?
     let startedAt: Date
     let plannedEndsAt: Date
     let finishedAt: Date
+
+    init(
+        status: SessionStatus,
+        plannedDurationSeconds: Int,
+        actualDurationSeconds: Int,
+        theme: ThemeID,
+        cardStyle: CardStyle = .washiClassic,
+        hideWatermark: Bool = false,
+        displayName: String? = nil,
+        message: String? = nil,
+        startedAt: Date,
+        plannedEndsAt: Date,
+        finishedAt: Date
+    ) {
+        self.status = status
+        self.plannedDurationSeconds = plannedDurationSeconds
+        self.actualDurationSeconds = actualDurationSeconds
+        self.theme = theme
+        self.cardStyle = cardStyle
+        self.hideWatermark = hideWatermark
+        self.displayName = displayName
+        self.message = message
+        self.startedAt = startedAt
+        self.plannedEndsAt = plannedEndsAt
+        self.finishedAt = finishedAt
+    }
 }
 
 /// Top-level session state machine matching `docs/03-architecture/ios-app-spec.md` §2.
@@ -33,7 +64,7 @@ enum AppSessionState: Equatable, Sendable {
     }
 }
 
-/// Central `@Observable` store coordinating timer, lifecycle monitoring, audio, notifications, and SwiftData.
+/// Central `@Observable` store coordinating timer, lifecycle monitoring, audio, notifications, API sync, billing, and SwiftData.
 @Observable
 @MainActor
 final class DetoxSessionStore {
@@ -46,8 +77,14 @@ final class DetoxSessionStore {
     let preferences: UserPreferencesStore
     let userIDProvider: any AnonymousUserIDProviding
     private let idleTimerController: any IdleTimerControlling
+    private let apiClient: any KumogakureAPIClienting
+    private let offlineFinishQueue: any OfflineFinishQueuing
+    let subscriptionManager: SubscriptionManager
 
     private var currentRecord: DetoxSessionRecord?
+    private var activeCustomHideWatermark: Bool?
+    private var hasStartedAppLaunch = false
+    private var pendingBackgroundSyncTask: Task<Void, Never>?
 
     private(set) var state: AppSessionState = .idle
     private(set) var cumulativeSummary: DetoxCumulativeSummary = .empty
@@ -57,8 +94,20 @@ final class DetoxSessionStore {
     private(set) var activePlannedEndsAt: Date?
     private(set) var isPro: Bool = false
 
+    private(set) var lastFetchedServerActiveCount: Int? = nil
+    private(set) var hasActiveRemoteSession: Bool = false
+
     /// Active participants excluding self (`nil` or `0` renders serene fallback copy).
-    var othersActiveCount: Int? = nil
+    var othersActiveCount: Int? {
+        get {
+            guard let raw = lastFetchedServerActiveCount else { return nil }
+            return hasActiveRemoteSession ? max(0, raw - 1) : max(0, raw)
+        }
+        set {
+            lastFetchedServerActiveCount = newValue
+            hasActiveRemoteSession = false
+        }
+    }
 
     var anonymousUserUUID: String {
         userIDProvider.getOrCreateAnonymousUserUUID()
@@ -73,7 +122,10 @@ final class DetoxSessionStore {
         repository: any DetoxSessionPersisting,
         preferences: UserPreferencesStore,
         userIDProvider: any AnonymousUserIDProviding = KeychainHelper(),
-        idleTimerController: any IdleTimerControlling = UIApplicationIdleTimerController()
+        idleTimerController: any IdleTimerControlling = UIApplicationIdleTimerController(),
+        apiClient: (any KumogakureAPIClienting)? = nil,
+        offlineFinishQueue: (any OfflineFinishQueuing)? = nil,
+        subscriptionManager: SubscriptionManager? = nil
     ) {
         self.clock = clock
         self.timerEngine = timerEngine
@@ -84,6 +136,15 @@ final class DetoxSessionStore {
         self.preferences = preferences
         self.userIDProvider = userIDProvider
         self.idleTimerController = idleTimerController
+
+        let resolvedAPIClient = apiClient ?? KumogakureAPIClient()
+        self.apiClient = resolvedAPIClient
+        self.offlineFinishQueue = offlineFinishQueue ?? OfflineFinishQueue(
+            apiClient: resolvedAPIClient,
+            repository: repository,
+            clock: clock
+        )
+        self.subscriptionManager = subscriptionManager ?? SubscriptionManager()
 
         self.activeTheme = preferences.selectedTheme
         self.activeSound = preferences.selectedSound
@@ -101,6 +162,13 @@ final class DetoxSessionStore {
         let audioManager = AmbientAudioManager(scheduler: scheduler)
         let notificationScheduler = NotificationScheduler(preferences: preferences, clock: clock)
         let repository = SwiftDataSessionRepository(modelContext: modelContext)
+        let apiClient = KumogakureAPIClient()
+        let offlineFinishQueue = OfflineFinishQueue(
+            apiClient: apiClient,
+            repository: repository,
+            clock: clock
+        )
+        let subscriptionManager = SubscriptionManager()
 
         self.init(
             clock: clock,
@@ -109,11 +177,42 @@ final class DetoxSessionStore {
             audioManager: audioManager,
             notificationScheduler: notificationScheduler,
             repository: repository,
-            preferences: preferences
+            preferences: preferences,
+            apiClient: apiClient,
+            offlineFinishQueue: offlineFinishQueue,
+            subscriptionManager: subscriptionManager
         )
     }
 
-    // MARK: - Home & Pre-Session Actions
+    // MARK: - App Launch & Networking
+
+    /// Runs initial recovery, StoreKit entitlement sync, pending `/finish` retry, and active count fetch.
+    func onAppLaunch() async {
+        recoverInProgressSessionIfNeeded()
+        if !hasStartedAppLaunch {
+            hasStartedAppLaunch = true
+            await subscriptionManager.start(appUserID: anonymousUserUUID)
+        } else {
+            await subscriptionManager.refreshEntitlement()
+        }
+        await offlineFinishQueue.flushPendingFinishes()
+        await refreshActiveParticipants()
+    }
+
+    func refreshActiveParticipants() async {
+        do {
+            let stats = try await apiClient.fetchActiveStats()
+            lastFetchedServerActiveCount = max(0, stats.activeCount)
+        } catch {
+            // Keep cached count or nil (`NFR-004` / `FR-006`: never surface an error dialog).
+        }
+    }
+
+    func awaitPendingBackgroundSync() async {
+        await pendingBackgroundSyncTask?.value
+    }
+
+    // MARK: - Entitlement & Home Pre-Session Actions
 
     func updateProStatus(_ newIsPro: Bool) {
         isPro = newIsPro
@@ -152,6 +251,47 @@ final class DetoxSessionStore {
         return preferences.durationMinutes
     }
 
+    func createPublicRemoteSession(
+        durationMinutes: Int,
+        displayName: String?,
+        message: String?,
+        isCustomMessage: Bool,
+        cardStyle: CardStyle,
+        hideWatermark: Bool
+    ) async throws -> CreateSessionResponse {
+        let clampedMinutes = min(
+            AppConfig.maxDurationMinutes,
+            max(AppConfig.minDurationMinutes, durationMinutes)
+        )
+        let resolvedTheme = ThemeID.resolved(rawValue: preferences.themeIDRaw, isPro: isPro)
+        let resolvedCardStyle = CardStyle.resolved(rawValue: cardStyle.rawValue, isPro: isPro)
+        let effectiveCustomMessage = isCustomMessage && isPro
+        let effectiveHideWatermark = hideWatermark && isPro
+
+        let sanitizedName = TextInputLimiter.sanitizedOptional(
+            displayName,
+            limit: AppConfig.maxDisplayNameLength
+        )
+        let sanitizedMessage = TextInputLimiter.sanitizedOptional(
+            message,
+            limit: AppConfig.maxMessageLength
+        )
+
+        let request = CreateSessionRequest(
+            userUUID: anonymousUserUUID,
+            durationMinutes: clampedMinutes,
+            themeID: resolvedTheme.rawValue,
+            cardStyle: resolvedCardStyle.rawValue,
+            hideWatermark: effectiveHideWatermark,
+            isPublic: true,
+            isCustomMessage: effectiveCustomMessage,
+            displayName: sanitizedName,
+            message: sanitizedMessage,
+            timezone: TimeZone.current.identifier
+        )
+        return try await apiClient.createSession(request)
+    }
+
     func beginQuietSessionWithNotificationPrompt() async {
         _ = await notificationScheduler.requestAuthorizationIfNeeded()
         startSession(durationMinutes: resolvedSelectedDurationMinutes(), isPublic: false)
@@ -161,14 +301,20 @@ final class DetoxSessionStore {
         durationMinutes: Int,
         isPublic: Bool,
         displayName: String? = nil,
-        customMessage: String? = nil
+        customMessage: String? = nil,
+        remoteSession: CreateSessionResponse? = nil,
+        cardStyle: CardStyle? = nil,
+        hideWatermark: Bool? = nil
     ) async {
         _ = await notificationScheduler.requestAuthorizationIfNeeded()
         startSession(
             durationMinutes: durationMinutes,
             isPublic: isPublic,
             displayName: displayName,
-            customMessage: customMessage
+            customMessage: customMessage,
+            remoteSession: remoteSession,
+            cardStyle: cardStyle,
+            hideWatermark: hideWatermark
         )
     }
 
@@ -176,7 +322,10 @@ final class DetoxSessionStore {
         durationMinutes: Int,
         isPublic: Bool,
         displayName: String? = nil,
-        customMessage: String? = nil
+        customMessage: String? = nil,
+        remoteSession: CreateSessionResponse? = nil,
+        cardStyle: CardStyle? = nil,
+        hideWatermark: Bool? = nil
     ) {
         audioManager.stopPreview()
 
@@ -187,25 +336,32 @@ final class DetoxSessionStore {
         let resolvedTheme = ThemeID.resolved(rawValue: preferences.themeIDRaw, isPro: isPro)
         let resolvedSound = SoundID.resolved(rawValue: preferences.soundIDRaw, isPro: isPro)
         let resolvedPurpose = PurposeID.resolved(rawValue: preferences.purposeIDRaw, isPro: isPro)
-        let resolvedCardStyle = CardStyle.resolved(rawValue: preferences.cardStyleRaw, isPro: isPro)
+        let requestedStyleRaw = cardStyle?.rawValue ?? preferences.cardStyleRaw
+        let resolvedCardStyle = CardStyle.resolved(rawValue: requestedStyleRaw, isPro: isPro)
+        let resolvedHideWatermark = (hideWatermark ?? preferences.hideWatermark) && isPro
 
         let startedAt = clock.now
         let plannedDurationSeconds = clampedMinutes * 60
         let plannedEndsAt = startedAt.addingTimeInterval(TimeInterval(plannedDurationSeconds))
 
-        let trimmedDisplayName = displayName?.trimmingCharacters(in: .whitespacesAndNewlines)
-        let storedDisplayName = (trimmedDisplayName?.isEmpty == false) ? trimmedDisplayName : nil
+        let storedDisplayName = TextInputLimiter.sanitizedOptional(
+            displayName ?? preferences.displayName,
+            limit: AppConfig.maxDisplayNameLength
+        )
         let resolvedMessage: String? = {
-            if let customMessage, !customMessage.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                return customMessage.trimmingCharacters(in: .whitespacesAndNewlines)
+            if let sanitized = TextInputLimiter.sanitizedOptional(
+                customMessage,
+                limit: AppConfig.maxMessageLength
+            ) {
+                return sanitized
             }
             return resolvedPurpose.presetMessage
         }()
 
         let record = DetoxSessionRecord(
             localID: UUID(),
-            remoteID: nil,
-            ownerToken: nil,
+            remoteID: remoteSession?.id,
+            ownerToken: remoteSession?.ownerToken,
             isPublic: isPublic,
             purposeID: resolvedPurpose.rawValue,
             displayName: storedDisplayName,
@@ -230,10 +386,12 @@ final class DetoxSessionStore {
         }
 
         currentRecord = record
+        activeCustomHideWatermark = resolvedHideWatermark
         activeTheme = resolvedTheme
         activeSound = resolvedSound
         activePlannedEndsAt = plannedEndsAt
         isAudioMuted = false
+        hasActiveRemoteSession = (remoteSession != nil)
 
         preferences.lastBackgroundWasScreenLock = false
         preferences.activeGraceDeadline = nil
@@ -248,6 +406,21 @@ final class DetoxSessionStore {
             endsAt: plannedEndsAt
         )
         lifecycleMonitor.setMonitoringEnabled(true)
+
+        if remoteSession != nil {
+            pendingBackgroundSyncTask = Task { [weak self] in
+                await self?.refreshActiveParticipants()
+            }
+        } else if !isPublic {
+            pendingBackgroundSyncTask = Task { [weak self] in
+                await self?.registerPrivateRemoteSession(
+                    for: record,
+                    durationMinutes: clampedMinutes,
+                    theme: resolvedTheme,
+                    cardStyle: resolvedCardStyle
+                )
+            }
+        }
     }
 
     // MARK: - In-Session Controls
@@ -293,8 +466,10 @@ final class DetoxSessionStore {
         audioManager.stopImmediately()
         idleTimerController.isIdleTimerDisabled = false
         currentRecord = nil
+        activeCustomHideWatermark = nil
         activePlannedEndsAt = nil
         isAudioMuted = false
+        hasActiveRemoteSession = false
         state = .idle
         refreshCumulativeSummary()
     }
@@ -309,14 +484,49 @@ final class DetoxSessionStore {
             && cumulativeSummary.completedCount >= AppConfig.proBannerCompletionThreshold
     }
 
+    // MARK: - Notifications & History Queries
+
+    func notificationAuthorizationStatus() async -> UNAuthorizationStatus {
+        await notificationScheduler.authorizationStatus()
+    }
+
+    func requestNotificationAuthorization() async -> Bool {
+        await notificationScheduler.requestAuthorizationIfNeeded()
+    }
+
+    func refreshCumulativeSummary() {
+        cumulativeSummary = (try? repository.fetchSummary()) ?? .empty
+    }
+
+    func fetchRecentHistoryRecords(limitDays: Int = AppConfig.freeHistoryRetentionDays) -> [DetoxSessionRecord] {
+        if isPro {
+            return (try? repository.fetchAllRecords()) ?? []
+        }
+        let cutoff = Calendar.current.date(byAdding: .day, value: -limitDays, to: clock.now) ?? clock.now
+        return (try? repository.fetchRecentRecords(since: cutoff)) ?? []
+    }
+
+    func countLockedHistoryRecords(limitDays: Int = AppConfig.freeHistoryRetentionDays) -> Int {
+        guard !isPro else { return 0 }
+        let cutoff = Calendar.current.date(byAdding: .day, value: -limitDays, to: clock.now) ?? clock.now
+        return (try? repository.countOlderRecords(before: cutoff)) ?? 0
+    }
+
     // MARK: - Scene Lifecycle & Task-Kill Recovery
 
     func handleScenePhaseChange(_ phase: AppScenePhase) {
         lifecycleMonitor.handleScenePhaseChange(phase)
 
         // When returning active from screen lock (not grace-expired), re-evaluate completion immediately.
-        if phase == .active, state == .active {
-            timerEngine.refresh()
+        if phase == .active {
+            if state == .active {
+                timerEngine.refresh()
+            }
+            Task { [weak self] in
+                guard let self else { return }
+                await self.offlineFinishQueue.flushPendingFinishes()
+                await self.refreshActiveParticipants()
+            }
         }
     }
 
@@ -332,12 +542,15 @@ final class DetoxSessionStore {
         let now = clock.now
         let theme = ThemeID.resolved(rawValue: record.themeID, isPro: isPro)
         let sound = SoundID.resolved(rawValue: record.soundID, isPro: isPro)
+        let cardStyle = CardStyle.resolved(rawValue: record.cardStyle, isPro: isPro)
+        let hideWatermark = preferences.hideWatermark && isPro
 
         if record.status == .active && now >= record.plannedEndsAt {
             record.status = .completed
             record.actualDurationSeconds = record.plannedDurationSeconds
             record.finishedAt = record.plannedEndsAt
-            record.needsRemoteFinishSync = (record.remoteID != nil)
+            let shouldSync = (record.remoteID != nil && record.ownerToken != nil)
+            record.needsRemoteFinishSync = shouldSync
             try? repository.save()
 
             notificationScheduler.cancelCompletionNotification(sessionID: record.localID)
@@ -345,6 +558,7 @@ final class DetoxSessionStore {
             idleTimerController.isIdleTimerDisabled = false
             activeTheme = theme
             activeSound = sound
+            hasActiveRemoteSession = false
             refreshCumulativeSummary()
 
             let summary = SessionResultSummary(
@@ -352,11 +566,21 @@ final class DetoxSessionStore {
                 plannedDurationSeconds: record.plannedDurationSeconds,
                 actualDurationSeconds: record.plannedDurationSeconds,
                 theme: theme,
+                cardStyle: cardStyle,
+                hideWatermark: hideWatermark,
+                displayName: record.displayName,
+                message: record.customMessage,
                 startedAt: record.startedAt,
                 plannedEndsAt: record.plannedEndsAt,
                 finishedAt: record.plannedEndsAt
             )
             state = .completed(summary)
+
+            if shouldSync {
+                pendingBackgroundSyncTask = Task { [weak self] in
+                    await self?.offlineFinishQueue.submitFinish(for: record)
+                }
+            }
             return
         }
 
@@ -366,6 +590,7 @@ final class DetoxSessionStore {
             activeSound = sound
             activePlannedEndsAt = record.plannedEndsAt
             isAudioMuted = false
+            hasActiveRemoteSession = (record.remoteID != nil)
             state = .active
             idleTimerController.isIdleTimerDisabled = preferences.keepScreenOn
 
@@ -386,7 +611,8 @@ final class DetoxSessionStore {
         record.status = .interrupted
         record.actualDurationSeconds = actualSeconds
         record.finishedAt = now
-        record.needsRemoteFinishSync = (record.remoteID != nil)
+        let shouldSync = (record.remoteID != nil && record.ownerToken != nil)
+        record.needsRemoteFinishSync = shouldSync
         try? repository.save()
 
         notificationScheduler.cancelCompletionNotification(sessionID: record.localID)
@@ -394,6 +620,7 @@ final class DetoxSessionStore {
         idleTimerController.isIdleTimerDisabled = false
         activeTheme = theme
         activeSound = sound
+        hasActiveRemoteSession = false
         refreshCumulativeSummary()
 
         let summary = SessionResultSummary(
@@ -401,29 +628,21 @@ final class DetoxSessionStore {
             plannedDurationSeconds: record.plannedDurationSeconds,
             actualDurationSeconds: actualSeconds,
             theme: theme,
+            cardStyle: cardStyle,
+            hideWatermark: hideWatermark,
+            displayName: record.displayName,
+            message: record.customMessage,
             startedAt: record.startedAt,
             plannedEndsAt: record.plannedEndsAt,
             finishedAt: now
         )
         state = .interrupted(summary)
-    }
 
-    func refreshCumulativeSummary() {
-        cumulativeSummary = (try? repository.fetchSummary()) ?? .empty
-    }
-
-    func fetchRecentHistoryRecords(limitDays: Int = AppConfig.freeHistoryRetentionDays) -> [DetoxSessionRecord] {
-        if isPro {
-            return (try? repository.fetchAllRecords()) ?? []
+        if shouldSync {
+            pendingBackgroundSyncTask = Task { [weak self] in
+                await self?.offlineFinishQueue.submitFinish(for: record)
+            }
         }
-        let cutoff = Calendar.current.date(byAdding: .day, value: -limitDays, to: clock.now) ?? clock.now
-        return (try? repository.fetchRecentRecords(since: cutoff)) ?? []
-    }
-
-    func countLockedHistoryRecords(limitDays: Int = AppConfig.freeHistoryRetentionDays) -> Int {
-        guard !isPro else { return 0 }
-        let cutoff = Calendar.current.date(byAdding: .day, value: -limitDays, to: clock.now) ?? clock.now
-        return (try? repository.countOlderRecords(before: cutoff)) ?? 0
     }
 
     // MARK: - Private Wiring
@@ -450,6 +669,48 @@ final class DetoxSessionStore {
             if self.state == .active {
                 self.timerEngine.refresh()
             }
+        }
+        subscriptionManager.onEntitlementChanged = { [weak self] newIsPro in
+            self?.updateProStatus(newIsPro)
+        }
+    }
+
+    private func registerPrivateRemoteSession(
+        for record: DetoxSessionRecord,
+        durationMinutes: Int,
+        theme: ThemeID,
+        cardStyle: CardStyle
+    ) async {
+        let request = CreateSessionRequest(
+            userUUID: anonymousUserUUID,
+            durationMinutes: durationMinutes,
+            themeID: theme.rawValue,
+            cardStyle: cardStyle.rawValue,
+            hideWatermark: false,
+            isPublic: false,
+            isCustomMessage: false,
+            displayName: nil,
+            message: nil,
+            timezone: TimeZone.current.identifier
+        )
+
+        do {
+            let response = try await apiClient.createSession(request)
+            record.remoteID = response.id
+            record.ownerToken = response.ownerToken
+
+            if record.status.isInProgress, currentRecord?.localID == record.localID {
+                hasActiveRemoteSession = true
+                try? repository.save()
+                await refreshActiveParticipants()
+            } else {
+                // Session finished locally before the network call returned: immediately send `/finish`.
+                record.needsRemoteFinishSync = true
+                try? repository.save()
+                await offlineFinishQueue.submitFinish(for: record)
+            }
+        } catch {
+            // Silent degradation: local timer & audio continue offline (`NFR-004`).
         }
     }
 
@@ -514,26 +775,35 @@ final class DetoxSessionStore {
             )
         }
 
+        let shouldSync = (record.remoteID != nil && record.ownerToken != nil)
         record.status = status
         record.actualDurationSeconds = actualSeconds
         record.finishedAt = finishedAt
-        record.needsRemoteFinishSync = (record.remoteID != nil)
+        record.needsRemoteFinishSync = shouldSync
         try? repository.save()
 
         let theme = ThemeID.resolved(rawValue: record.themeID, isPro: isPro)
+        let cardStyle = CardStyle.resolved(rawValue: record.cardStyle, isPro: isPro)
+        let hideWatermark = (activeCustomHideWatermark ?? preferences.hideWatermark) && isPro
         let summary = SessionResultSummary(
             status: status,
             plannedDurationSeconds: record.plannedDurationSeconds,
             actualDurationSeconds: actualSeconds,
             theme: theme,
+            cardStyle: cardStyle,
+            hideWatermark: hideWatermark,
+            displayName: record.displayName,
+            message: record.customMessage,
             startedAt: record.startedAt,
             plannedEndsAt: record.plannedEndsAt,
             finishedAt: finishedAt
         )
 
         currentRecord = nil
+        activeCustomHideWatermark = nil
         activePlannedEndsAt = nil
         isAudioMuted = false
+        hasActiveRemoteSession = false
         refreshCumulativeSummary()
 
         switch status {
@@ -543,6 +813,12 @@ final class DetoxSessionStore {
             state = .canceled(summary)
         default:
             state = .interrupted(summary)
+        }
+
+        if shouldSync {
+            pendingBackgroundSyncTask = Task { [weak self] in
+                await self?.offlineFinishQueue.submitFinish(for: record)
+            }
         }
     }
 }
