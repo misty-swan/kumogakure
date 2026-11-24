@@ -259,8 +259,12 @@ final class SubscriptionAndHistoryTests: XCTestCase {
         session.disableDialogs = true
         session.storefront = "JPN"
         session.locale = Locale(identifier: "ja_JP")
+        session.resetToDefaultState()
         session.clearTransactions()
-        defer { session.clearTransactions() }
+        defer {
+            session.clearTransactions()
+            session.resetToDefaultState()
+        }
 
         let manager = SubscriptionManager(billing: StoreKitBillingClient())
         await manager.start(appUserID: UUID().uuidString.lowercased())
@@ -284,8 +288,14 @@ final class SubscriptionAndHistoryTests: XCTestCase {
         XCTAssertEqual(manager.entitlement.entitlementID, AppConfig.entitlementID)
         XCTAssertEqual(manager.entitlement.activeProductID, AppConfig.yearlyProductID)
 
-        session.clearTransactions()
-        await manager.refreshEntitlement()
+        try session.expireSubscription(productIdentifier: AppConfig.yearlyProductID)
+        for _ in 0..<25 {
+            await manager.refreshEntitlement()
+            if !manager.isPro {
+                break
+            }
+            try await Task.sleep(nanoseconds: 100_000_000)
+        }
         XCTAssertFalse(manager.isPro)
     }
 }
