@@ -1,0 +1,103 @@
+name: iOS CI
+
+on:
+  pull_request:
+    paths:
+      - "apps/ios/**"
+      - ".github/workflows/ios-ci.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "apps/ios/**"
+      - ".github/workflows/ios-ci.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: ios-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build-and-test:
+    name: Build & Run XCTest (iOS Simulator)
+    runs-on: macos-15
+    timeout-minutes: 25
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Inspect Xcode & project scheme
+        run: |
+          xcodebuild -version
+          xcodebuild -list -project apps/ios/Kumogakure.xcodeproj
+
+      - name: Select and boot iPhone simulator
+        run: |
+          SIMULATOR_INFO="$(
+            xcrun simctl list devices available -j | python3 - <<'PY'
+          import json
+          import re
+          import sys
+
+          data = json.load(sys.stdin)
+
+          def runtime_key(runtime_id):
+              return tuple(int(n) for n in re.findall(r"\d+", runtime_id))
+
+          ios_runtimes = sorted(
+              (rt for rt in data.get("devices", {}) if "iOS" in rt),
+              key=runtime_key,
+              reverse=True,
+          )
+
+          candidates = []
+          for rt in ios_runtimes:
+              for dev in data["devices"][rt]:
+                  if dev.get("isAvailable") and "iPhone" in dev.get("name", ""):
+                      candidates.append((rt, dev))
+
+          if not candidates:
+              raise SystemExit("No available iPhone simulator found.")
+
+          preferred = [
+              item for item in candidates
+              if item[1].get("name", "").startswith("iPhone 16")
+          ]
+          chosen_rt, chosen_dev = preferred[0] if preferred else candidates[0]
+          udid = chosen_dev["udid"]
+          name = chosen_dev["name"]
+          print(f"{udid}|{name}|{chosen_rt}")
+          PY
+          )"
+          SIMULATOR_UDID="${SIMULATOR_INFO%%|*}"
+          REST="${SIMULATOR_INFO#*|}"
+          SIMULATOR_NAME="${REST%%|*}"
+          SIMULATOR_RUNTIME="${REST#*|}"
+          echo "Selected simulator: ${SIMULATOR_NAME} (${SIMULATOR_UDID}) on ${SIMULATOR_RUNTIME}"
+          echo "SIMULATOR_UDID=${SIMULATOR_UDID}" >> "$GITHUB_ENV"
+
+          xcrun simctl boot "${SIMULATOR_UDID}" || true
+          xcrun simctl bootstatus "${SIMULATOR_UDID}" -b
+
+      - name: Build and run XCTest
+        working-directory: apps/ios
+        run: |
+          set -o pipefail
+          xcodebuild test \
+            -project Kumogakure.xcodeproj \
+            -scheme Kumogakure \
+            -destination "platform=iOS Simulator,id=${SIMULATOR_UDID}" \
+            -derivedDataPath build/DerivedData \
+            -resultBundlePath build/TestResults.xcresult \
+            DEVELOPMENT_TEAM="" \
+            CODE_SIGNING_REQUIRED=NO
+
+      - name: Upload test results on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-test-results
+          path: apps/ios/build/TestResults.xcresult
+          retention-days: 7

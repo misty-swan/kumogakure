@@ -1,0 +1,615 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		56A2D9D42CF2374A3AEEEBF3 /* Assets.xcassets in Sources */ = {isa = PBXBuildFile; fileRef = B40359E7C8D956679B59073F /* Assets.xcassets */; };
+		1B168B9E99FC47843AB2A1C9 /* bonfire.m4a in Sources */ = {isa = PBXBuildFile; fileRef = 67C617A3A98DA0E01E42DF15 /* bonfire.m4a */; };
+		AC279776DD3430E46063CCA6 /* night_wind.m4a in Sources */ = {isa = PBXBuildFile; fileRef = 1BBC358B7F59E823F2A0366A /* night_wind.m4a */; };
+		1C64040050D93F45F53D24A9 /* rain.m4a in Sources */ = {isa = PBXBuildFile; fileRef = 6387A5D5389881B34C187366 /* rain.m4a */; };
+		CCF2F56AFD9C5D2693B1D75C /* AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEBD59841C4F0094DF91CC67 /* AppConfig.swift */; };
+		BD5BD3E4B52E6A746D015EB2 /* KumogakureApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FEB397172AEF70F19B0E6DF /* KumogakureApp.swift */; };
+		0A9850069BE78256CB941C94 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB7F06015D08D8C85D5185A7 /* RootView.swift */; };
+		7B7D3B364DC8A6B455C5FEB7 /* AmbientAudioManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD75C8A3D12C24BDB66C354F /* AmbientAudioManager.swift */; };
+		DB1242F2BE3597A04BC247DF /* Catalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24EA1D14B9EF0DF825683316 /* Catalog.swift */; };
+		A465E86A9B967D47909547BF /* DurationFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96ED4F1231ED32D15F5D4492 /* DurationFormatter.swift */; };
+		47002B1BF2AE898E9EFFF9F5 /* MorningTargetCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F485505492ECA243762033 /* MorningTargetCalculator.swift */; };
+		3D40F35FD109C0A7C7B20B20 /* NotificationScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = E437A2109A66AD00E803285B /* NotificationScheduler.swift */; };
+		F51DC555084B1ED900284405 /* DetoxSessionRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A0A07D4B8FD0196DF99B6C3 /* DetoxSessionRecord.swift */; };
+		1B715496E5A5EF6C7C70DFB5 /* KeychainHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 052793F9B8828F5FF2E5F31D /* KeychainHelper.swift */; };
+		11A6E69670114C408D801924 /* UserPreferencesStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6285B5530C2C682D0B723136 /* UserPreferencesStore.swift */; };
+		9DA47DF655F38EC9F977E009 /* AppLifecycleMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BAF44550A35B1B51EDB5E34 /* AppLifecycleMonitor.swift */; };
+		FAE5C904CEF31AE7D72EED67 /* ClockProviding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 197A84910CE8DFE1191F41A9 /* ClockProviding.swift */; };
+		9B3FB53C3B8853832152A860 /* DetoxSessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A109F8FD67AFD61A79203F0D /* DetoxSessionStore.swift */; };
+		8C4B921D4D9908BBBDBF0E5F /* DetoxTimerEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9F32D6FE8DC496B66B9FF1E /* DetoxTimerEngine.swift */; };
+		484E16CC98F23F646277FC3C /* KumogakureColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16FCACD29ADBF58A9182D9D3 /* KumogakureColors.swift */; };
+		B7E0C1C9CBE14CC5338B353A /* KumogakureComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5FA9734CE6B8B17633B3E46 /* KumogakureComponents.swift */; };
+		96435DB9C0397179AAC3B27F /* KumogakureTypography.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C8BCA99B05FA362416A403C /* KumogakureTypography.swift */; };
+		5D1DD3EA2CB7BCF25D9A2E1E /* DetoxSessionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37449CBBF3636AA2DAE2C54D /* DetoxSessionView.swift */; };
+		098671C1415D554B0C0A5A5A /* FogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D011933139E60F330316B9C3 /* FogView.swift */; };
+		8952ADD86F8CB76B38847512 /* CustomDurationPickerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEF004F94F44D295CEA8E356 /* CustomDurationPickerSheet.swift */; };
+		691D1B00419DF9AB02DED281 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 515E03E63BE38FC0D911DCDF /* HomeView.swift */; };
+		B263359DB6B2912EE96AD016 /* Week4BridgeSheets.swift in Sources */ = {isa = PBXBuildFile; fileRef = F75C32FEF201AD8F4C5A0A81 /* Week4BridgeSheets.swift */; };
+		7C3FDF80A1196D383360BADD /* EarlyReturnView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 998A790BEA2611EEBC31B93E /* EarlyReturnView.swift */; };
+		7591F3C8EA28976EEA2F0BCF /* ReturnCompleteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCC9C4A31E13D5A58CA99C2C /* ReturnCompleteView.swift */; };
+		DA50AACE8B857D6273FD2902 /* AmbientAudioManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A598B754C4678A5BFBBF9D68 /* AmbientAudioManagerTests.swift */; };
+		57FB8CED0DB6868CA2513C34 /* AppLifecycleMonitorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 430A51AC2F575EA6897E3BE2 /* AppLifecycleMonitorTests.swift */; };
+		78EA2FFBB699E55A43103EA2 /* DetoxSessionStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F39AC43AEF7B3135C85D69BD /* DetoxSessionStoreTests.swift */; };
+		8668160B8F5AFA3D0779F1B4 /* DetoxTimerEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4E51EDC8444516A6ED5F754 /* DetoxTimerEngineTests.swift */; };
+		87A369C300E1CEC745AC113C /* KeychainAndStorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3062A8A1483EEC40E75C4246 /* KeychainAndStorageTests.swift */; };
+		31FA602660C68559365FC19A /* MorningTargetCalculatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BB8241993C927FAB3A32022 /* MorningTargetCalculatorTests.swift */; };
+		4CF28FC81B772ABB23EBDDA6 /* TestDoubles.swift in Sources */ = {isa = PBXBuildFile; fileRef = A857F5754D33511C3D18A248 /* TestDoubles.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		54FD1113144A08FB51957ED9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 6CAC0F711B0CCE87361EBAFF /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 603F51AC44416D0E855D7A9F;
+			remoteInfo = Kumogakure;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		F2054AA55270AB59D2D40337 /* Kumogakure.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Kumogakure.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		4114DD5C10F54217E6CD9FAF /* KumogakureTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.xctest; includeInIndex = 0; path = KumogakureTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		CEBD59841C4F0094DF91CC67 /* AppConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppConfig.swift"; sourceTree = "<group>"; };
+		1FEB397172AEF70F19B0E6DF /* KumogakureApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "KumogakureApp.swift"; sourceTree = "<group>"; };
+		EB7F06015D08D8C85D5185A7 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RootView.swift"; sourceTree = "<group>"; };
+		FD75C8A3D12C24BDB66C354F /* AmbientAudioManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AmbientAudioManager.swift"; sourceTree = "<group>"; };
+		24EA1D14B9EF0DF825683316 /* Catalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Catalog.swift"; sourceTree = "<group>"; };
+		96ED4F1231ED32D15F5D4492 /* DurationFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DurationFormatter.swift"; sourceTree = "<group>"; };
+		54F485505492ECA243762033 /* MorningTargetCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MorningTargetCalculator.swift"; sourceTree = "<group>"; };
+		E437A2109A66AD00E803285B /* NotificationScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NotificationScheduler.swift"; sourceTree = "<group>"; };
+		3A0A07D4B8FD0196DF99B6C3 /* DetoxSessionRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DetoxSessionRecord.swift"; sourceTree = "<group>"; };
+		052793F9B8828F5FF2E5F31D /* KeychainHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "KeychainHelper.swift"; sourceTree = "<group>"; };
+		6285B5530C2C682D0B723136 /* UserPreferencesStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UserPreferencesStore.swift"; sourceTree = "<group>"; };
+		7BAF44550A35B1B51EDB5E34 /* AppLifecycleMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppLifecycleMonitor.swift"; sourceTree = "<group>"; };
+		197A84910CE8DFE1191F41A9 /* ClockProviding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ClockProviding.swift"; sourceTree = "<group>"; };
+		A109F8FD67AFD61A79203F0D /* DetoxSessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DetoxSessionStore.swift"; sourceTree = "<group>"; };
+		D9F32D6FE8DC496B66B9FF1E /* DetoxTimerEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DetoxTimerEngine.swift"; sourceTree = "<group>"; };
+		16FCACD29ADBF58A9182D9D3 /* KumogakureColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "KumogakureColors.swift"; sourceTree = "<group>"; };
+		F5FA9734CE6B8B17633B3E46 /* KumogakureComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "KumogakureComponents.swift"; sourceTree = "<group>"; };
+		1C8BCA99B05FA362416A403C /* KumogakureTypography.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "KumogakureTypography.swift"; sourceTree = "<group>"; };
+		37449CBBF3636AA2DAE2C54D /* DetoxSessionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DetoxSessionView.swift"; sourceTree = "<group>"; };
+		D011933139E60F330316B9C3 /* FogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FogView.swift"; sourceTree = "<group>"; };
+		FEF004F94F44D295CEA8E356 /* CustomDurationPickerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CustomDurationPickerSheet.swift"; sourceTree = "<group>"; };
+		515E03E63BE38FC0D911DCDF /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HomeView.swift"; sourceTree = "<group>"; };
+		F75C32FEF201AD8F4C5A0A81 /* Week4BridgeSheets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Week4BridgeSheets.swift"; sourceTree = "<group>"; };
+		998A790BEA2611EEBC31B93E /* EarlyReturnView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "EarlyReturnView.swift"; sourceTree = "<group>"; };
+		CCC9C4A31E13D5A58CA99C2C /* ReturnCompleteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ReturnCompleteView.swift"; sourceTree = "<group>"; };
+		72E0DBAF02F6AA2D9F32C76F /* ASSETS_CREDITS.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "ASSETS_CREDITS.md"; sourceTree = "<group>"; };
+		B40359E7C8D956679B59073F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Assets.xcassets"; sourceTree = "<group>"; };
+		F23DF8712C8484FDCF30FD72 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Info.plist"; sourceTree = "<group>"; };
+		67C617A3A98DA0E01E42DF15 /* bonfire.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = "bonfire.m4a"; sourceTree = "<group>"; };
+		1BBC358B7F59E823F2A0366A /* night_wind.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = "night_wind.m4a"; sourceTree = "<group>"; };
+		6387A5D5389881B34C187366 /* rain.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = "rain.m4a"; sourceTree = "<group>"; };
+		A598B754C4678A5BFBBF9D68 /* AmbientAudioManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AmbientAudioManagerTests.swift"; sourceTree = "<group>"; };
+		430A51AC2F575EA6897E3BE2 /* AppLifecycleMonitorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppLifecycleMonitorTests.swift"; sourceTree = "<group>"; };
+		F39AC43AEF7B3135C85D69BD /* DetoxSessionStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DetoxSessionStoreTests.swift"; sourceTree = "<group>"; };
+		F4E51EDC8444516A6ED5F754 /* DetoxTimerEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DetoxTimerEngineTests.swift"; sourceTree = "<group>"; };
+		3062A8A1483EEC40E75C4246 /* KeychainAndStorageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "KeychainAndStorageTests.swift"; sourceTree = "<group>"; };
+		5BB8241993C927FAB3A32022 /* MorningTargetCalculatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MorningTargetCalculatorTests.swift"; sourceTree = "<group>"; };
+		A857F5754D33511C3D18A248 /* TestDoubles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TestDoubles.swift"; sourceTree = "<group>"; };
+		B4D5C4CF755002092CD2AC5D /* project.yml */ = {isa = PBXFileReference; lastKnownFileType = text; path = "project.yml"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		F001BC2AF9EB5498B3360756 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D6B208DB47DA230159E08E40 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		61433FAC6ED5200DD51C5B3A /* App */ = {
+			isa = PBXGroup;
+			children = (
+				CEBD59841C4F0094DF91CC67,
+				1FEB397172AEF70F19B0E6DF,
+				EB7F06015D08D8C85D5185A7,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		119C03F5DA82283520B81030 /* Audio */ = {
+			isa = PBXGroup;
+			children = (
+				FD75C8A3D12C24BDB66C354F,
+			);
+			path = Audio;
+			sourceTree = "<group>";
+		};
+		58A7E2F0E2E6FDF2C6C355CE /* Domain */ = {
+			isa = PBXGroup;
+			children = (
+				24EA1D14B9EF0DF825683316,
+				96ED4F1231ED32D15F5D4492,
+				54F485505492ECA243762033,
+			);
+			path = Domain;
+			sourceTree = "<group>";
+		};
+		EA23EC3FD6901E82ABDAA4EE /* Notification */ = {
+			isa = PBXGroup;
+			children = (
+				E437A2109A66AD00E803285B,
+			);
+			path = Notification;
+			sourceTree = "<group>";
+		};
+		9FF2A8C9DEA7A7D33B2B2178 /* Storage */ = {
+			isa = PBXGroup;
+			children = (
+				3A0A07D4B8FD0196DF99B6C3,
+				052793F9B8828F5FF2E5F31D,
+				6285B5530C2C682D0B723136,
+			);
+			path = Storage;
+			sourceTree = "<group>";
+		};
+		73C7431A5C230CCD8805F694 /* Timer */ = {
+			isa = PBXGroup;
+			children = (
+				7BAF44550A35B1B51EDB5E34,
+				197A84910CE8DFE1191F41A9,
+				A109F8FD67AFD61A79203F0D,
+				D9F32D6FE8DC496B66B9FF1E,
+			);
+			path = Timer;
+			sourceTree = "<group>";
+		};
+		FCABC8458DEF99A50C511026 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				119C03F5DA82283520B81030,
+				58A7E2F0E2E6FDF2C6C355CE,
+				EA23EC3FD6901E82ABDAA4EE,
+				9FF2A8C9DEA7A7D33B2B2178,
+				73C7431A5C230CCD8805F694,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		6046BD2629DECC9D1E541F7F /* DesignSystem */ = {
+			isa = PBXGroup;
+			children = (
+				16FCACD29ADBF58A9182D9D3,
+				F5FA9734CE6B8B17633B3E46,
+				1C8BCA99B05FA362416A403C,
+			);
+			path = DesignSystem;
+			sourceTree = "<group>";
+		};
+		628F563B9A25E3C69C04EDB2 /* Detox */ = {
+			isa = PBXGroup;
+			children = (
+				37449CBBF3636AA2DAE2C54D,
+				D011933139E60F330316B9C3,
+			);
+			path = Detox;
+			sourceTree = "<group>";
+		};
+		B1AE1B991F96945A2A9FD4D0 /* Home */ = {
+			isa = PBXGroup;
+			children = (
+				FEF004F94F44D295CEA8E356,
+				515E03E63BE38FC0D911DCDF,
+			);
+			path = Home;
+			sourceTree = "<group>";
+		};
+		B75E73A1A4ACF167726B104B /* Placeholders */ = {
+			isa = PBXGroup;
+			children = (
+				F75C32FEF201AD8F4C5A0A81,
+			);
+			path = Placeholders;
+			sourceTree = "<group>";
+		};
+		A7A5008B7D381344D0B89163 /* Result */ = {
+			isa = PBXGroup;
+			children = (
+				998A790BEA2611EEBC31B93E,
+				CCC9C4A31E13D5A58CA99C2C,
+			);
+			path = Result;
+			sourceTree = "<group>";
+		};
+		DC561968CCC224934568437C /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				628F563B9A25E3C69C04EDB2,
+				B1AE1B991F96945A2A9FD4D0,
+				B75E73A1A4ACF167726B104B,
+				A7A5008B7D381344D0B89163,
+			);
+			path = Features;
+			sourceTree = "<group>";
+		};
+		27B94227DE77CFE28719CF9F /* Sounds */ = {
+			isa = PBXGroup;
+			children = (
+				67C617A3A98DA0E01E42DF15,
+				1BBC358B7F59E823F2A0366A,
+				6387A5D5389881B34C187366,
+			);
+			path = Sounds;
+			sourceTree = "<group>";
+		};
+		73A44B1323BFF3AF15F82C74 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				B40359E7C8D956679B59073F,
+				27B94227DE77CFE28719CF9F,
+				F23DF8712C8484FDCF30FD72,
+				72E0DBAF02F6AA2D9F32C76F,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		2B006E1CC8CCEE3C4AD935C1 /* Kumogakure */ = {
+			isa = PBXGroup;
+			children = (
+				61433FAC6ED5200DD51C5B3A,
+				FCABC8458DEF99A50C511026,
+				6046BD2629DECC9D1E541F7F,
+				DC561968CCC224934568437C,
+				73A44B1323BFF3AF15F82C74,
+			);
+			path = Kumogakure;
+			sourceTree = "<group>";
+		};
+		CCFBFC6BCF62CC6504AEE9B2 /* KumogakureTests */ = {
+			isa = PBXGroup;
+			children = (
+				A598B754C4678A5BFBBF9D68,
+				430A51AC2F575EA6897E3BE2,
+				F39AC43AEF7B3135C85D69BD,
+				F4E51EDC8444516A6ED5F754,
+				3062A8A1483EEC40E75C4246,
+				5BB8241993C927FAB3A32022,
+				A857F5754D33511C3D18A248,
+			);
+			path = KumogakureTests;
+			sourceTree = "<group>";
+		};
+		5151B46607EBC8890D8DFCC2 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				F2054AA55270AB59D2D40337,
+				4114DD5C10F54217E6CD9FAF,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		9C3925A1C58D23473F08CCC0 /* ROOT */ = {
+			isa = PBXGroup;
+			children = (
+				2B006E1CC8CCEE3C4AD935C1,
+				CCFBFC6BCF62CC6504AEE9B2,
+				B4D5C4CF755002092CD2AC5D,
+				5151B46607EBC8890D8DFCC2,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		603F51AC44416D0E855D7A9F /* Kumogakure */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 23746EFE221170E24101FE05 /* Build configuration list for PBXNativeTarget "Kumogakure" */;
+			buildPhases = (
+				8682261519D15BD64A9E5D31 /* Sources */,
+				F001BC2AF9EB5498B3360756 /* Frameworks */,
+				E28FAD8F60ECDED9B4AD087A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Kumogakure;
+			productName = Kumogakure;
+			productReference = F2054AA55270AB59D2D40337 /* Kumogakure.app */;
+			productType = "com.apple.product-type.application";
+		};
+		413CABBCDF689A0647B0FB57 /* KumogakureTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 48751F087EE6031B0313610C /* Build configuration list for PBXNativeTarget "KumogakureTests" */;
+			buildPhases = (
+				29BEEA3D856852A8CC3247ED /* Sources */,
+				D6B208DB47DA230159E08E40 /* Frameworks */,
+				96B4702EF39C73C4DCF44E6C /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				BD4FC2FF1D27EF9BA5751FD5 /* PBXTargetDependency */,
+			);
+			name = KumogakureTests;
+			productName = KumogakureTests;
+			productReference = 4114DD5C10F54217E6CD9FAF /* KumogakureTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		6CAC0F711B0CCE87361EBAFF /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1530;
+				LastUpgradeCheck = 1530;
+				TargetAttributes = {
+					603F51AC44416D0E855D7A9F = {
+						CreatedOnToolsVersion = 15.3;
+					};
+					413CABBCDF689A0647B0FB57 = {
+						CreatedOnToolsVersion = 15.3;
+						TestTargetID = 603F51AC44416D0E855D7A9F;
+					};
+				};
+			};
+			buildConfigurationList = 3D29D9F3A882C4202964FB56 /* Build configuration list for PBXProject "Kumogakure" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = ja;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				ja,
+				en,
+				Base,
+			);
+			mainGroup = 9C3925A1C58D23473F08CCC0;
+			productRefGroup = 5151B46607EBC8890D8DFCC2 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				603F51AC44416D0E855D7A9F /* Kumogakure */,
+				413CABBCDF689A0647B0FB57 /* KumogakureTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		E28FAD8F60ECDED9B4AD087A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				56A2D9D42CF2374A3AEEEBF3 /* Assets.xcassets in Resources */,
+				1B168B9E99FC47843AB2A1C9 /* bonfire.m4a in Resources */,
+				AC279776DD3430E46063CCA6 /* night_wind.m4a in Resources */,
+				1C64040050D93F45F53D24A9 /* rain.m4a in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		96B4702EF39C73C4DCF44E6C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		8682261519D15BD64A9E5D31 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CCF2F56AFD9C5D2693B1D75C /* AppConfig.swift in Sources */,
+				BD5BD3E4B52E6A746D015EB2 /* KumogakureApp.swift in Sources */,
+				0A9850069BE78256CB941C94 /* RootView.swift in Sources */,
+				7B7D3B364DC8A6B455C5FEB7 /* AmbientAudioManager.swift in Sources */,
+				DB1242F2BE3597A04BC247DF /* Catalog.swift in Sources */,
+				A465E86A9B967D47909547BF /* DurationFormatter.swift in Sources */,
+				47002B1BF2AE898E9EFFF9F5 /* MorningTargetCalculator.swift in Sources */,
+				3D40F35FD109C0A7C7B20B20 /* NotificationScheduler.swift in Sources */,
+				F51DC555084B1ED900284405 /* DetoxSessionRecord.swift in Sources */,
+				1B715496E5A5EF6C7C70DFB5 /* KeychainHelper.swift in Sources */,
+				11A6E69670114C408D801924 /* UserPreferencesStore.swift in Sources */,
+				9DA47DF655F38EC9F977E009 /* AppLifecycleMonitor.swift in Sources */,
+				FAE5C904CEF31AE7D72EED67 /* ClockProviding.swift in Sources */,
+				9B3FB53C3B8853832152A860 /* DetoxSessionStore.swift in Sources */,
+				8C4B921D4D9908BBBDBF0E5F /* DetoxTimerEngine.swift in Sources */,
+				484E16CC98F23F646277FC3C /* KumogakureColors.swift in Sources */,
+				B7E0C1C9CBE14CC5338B353A /* KumogakureComponents.swift in Sources */,
+				96435DB9C0397179AAC3B27F /* KumogakureTypography.swift in Sources */,
+				5D1DD3EA2CB7BCF25D9A2E1E /* DetoxSessionView.swift in Sources */,
+				098671C1415D554B0C0A5A5A /* FogView.swift in Sources */,
+				8952ADD86F8CB76B38847512 /* CustomDurationPickerSheet.swift in Sources */,
+				691D1B00419DF9AB02DED281 /* HomeView.swift in Sources */,
+				B263359DB6B2912EE96AD016 /* Week4BridgeSheets.swift in Sources */,
+				7C3FDF80A1196D383360BADD /* EarlyReturnView.swift in Sources */,
+				7591F3C8EA28976EEA2F0BCF /* ReturnCompleteView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		29BEEA3D856852A8CC3247ED /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DA50AACE8B857D6273FD2902 /* AmbientAudioManagerTests.swift in Sources */,
+				57FB8CED0DB6868CA2513C34 /* AppLifecycleMonitorTests.swift in Sources */,
+				78EA2FFBB699E55A43103EA2 /* DetoxSessionStoreTests.swift in Sources */,
+				8668160B8F5AFA3D0779F1B4 /* DetoxTimerEngineTests.swift in Sources */,
+				87A369C300E1CEC745AC113C /* KeychainAndStorageTests.swift in Sources */,
+				31FA602660C68559365FC19A /* MorningTargetCalculatorTests.swift in Sources */,
+				4CF28FC81B772ABB23EBDDA6 /* TestDoubles.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		BD4FC2FF1D27EF9BA5751FD5 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 603F51AC44416D0E855D7A9F /* Kumogakure */;
+			targetProxy = 54FD1113144A08FB51957ED9 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		855D4B0C75ECD556474FD8F5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_LANGUAGE = ja;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 0.1.0;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.10;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		4E74312DBBD620AE1CB5D771 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_LANGUAGE = ja;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 0.1.0;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.10;
+				TARGETED_DEVICE_FAMILY = 1;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		967DE5DAE8F9C3546488D3FD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Kumogakure/Resources/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = app.kumogakure.ios;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_STRICT_CONCURRENCY = complete;
+			};
+			name = Debug;
+		};
+		70A5F3AAC43D0790B57ED51A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Kumogakure/Resources/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = app.kumogakure.ios;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_STRICT_CONCURRENCY = complete;
+			};
+			name = Release;
+		};
+		616BE68C55EDB13288068B2F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = app.kumogakure.ios.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Kumogakure.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Kumogakure";
+			};
+			name = Debug;
+		};
+		E78E6D81968C56020FDC7FF2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = app.kumogakure.ios.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Kumogakure.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Kumogakure";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		3D29D9F3A882C4202964FB56 /* Build configuration list for PBXProject "Kumogakure" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				855D4B0C75ECD556474FD8F5 /* Debug */,
+				4E74312DBBD620AE1CB5D771 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		23746EFE221170E24101FE05 /* Build configuration list for PBXNativeTarget "Kumogakure" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				967DE5DAE8F9C3546488D3FD /* Debug */,
+				70A5F3AAC43D0790B57ED51A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		48751F087EE6031B0313610C /* Build configuration list for PBXNativeTarget "KumogakureTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				616BE68C55EDB13288068B2F /* Debug */,
+				E78E6D81968C56020FDC7FF2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 6CAC0F711B0CCE87361EBAFF /* Project object */;
+}
